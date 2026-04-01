@@ -45,6 +45,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/parts', [PartController::class, 'index'])->name('parts.index');
     Route::post('/parts', [PartController::class, 'store'])->name('parts.store');
+    Route::post('/parts/{part}/restock', [PartController::class, 'restock'])->name('parts.restock');
+    // Show the scanning page
+    Route::get('/parts/restock', [PartController::class, 'restockPage'])->name('parts.restock.page');
  });
 
 

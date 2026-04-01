@@ -33,11 +33,21 @@ const user = computed(() => page.props.auth?.user ?? null);
                                 <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
                                     Dashboard
                                 </NavLink>
-                                <NavLink :href="route('work-orders.create')" :active="route().current('work-orders.*')">
-                                    Check-In (Work Order)
+
+                                <NavLink :href="route('work-orders.create')" :active="route().current('work-orders.create')">
+                                    Check-In Mobil
                                 </NavLink>
-                                <NavLink :href="route('customers.index')" :active="route().current('customers.*')">
+
+                                <NavLink :href="route('customers.index')" :active="route().current('customers.index')">
                                     Pelanggan
+                                </NavLink>
+
+                                <NavLink :href="route('parts.index')" :active="route().current('parts.index')">
+                                    Data Barang & Jasa
+                                </NavLink>
+                                
+                                <NavLink :href="route('parts.restock.page')" :active="route().current('parts.restock.page')">
+                                    Input Stok Masuk
                                 </NavLink>
                             </div>
                         </div>
@@ -71,17 +81,14 @@ const user = computed(() => page.props.auth?.user ?? null);
                         <div class="-me-2 flex items-center sm:hidden">
                             <button
                                 @click="showingNavigationDropdown = !showingNavigationDropdown"
-                                class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none"
-                            >
+                                class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none">
                                 <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                                     <path
                                         :class="{ hidden: showingNavigationDropdown, 'inline-flex': !showingNavigationDropdown }"
-                                        stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"
-                                    />
+                                        stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                                     <path
                                         :class="{ hidden: !showingNavigationDropdown, 'inline-flex': showingNavigationDropdown }"
-                                        stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"
-                                    />
+                                        stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
@@ -93,6 +100,8 @@ const user = computed(() => page.props.auth?.user ?? null);
                         <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')"> Dashboard </ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('work-orders.create')" :active="route().current('work-orders.*')"> Check-In (Work Order) </ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('customers.index')" :active="route().current('customers.*')"> Pelanggan </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('parts.index')" :active="route().current('parts.index')"> Data Barang & Jasa </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('parts.restock.page')" :active="route().current('parts.restock.page')"> Input Stok Masuk </ResponsiveNavLink>
                     </div>
 
                     <div class="border-t border-gray-200 pb-1 pt-4">

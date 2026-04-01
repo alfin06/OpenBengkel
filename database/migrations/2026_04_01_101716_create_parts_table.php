@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('sell_price', 15, 2)->default(0); // Price on Invoice
             $table->integer('stock')->default(0); // Current quantity in cabinet
             $table->string('category')->default('Part'); // 'Part' or 'Service' (Labor)
+            $table->enum('type', ['Part', 'Service'])->default('Part');
             $table->timestamps();
         });
     }

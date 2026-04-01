@@ -16,12 +16,10 @@ class VehicleFactory extends Factory
      * @return array<string, mixed>
      */
     public function definition(): array {
-        $brands = ['Toyota', 'Honda', 'Suzuki', 'Mitsubishi', 'Daihatsu'];
         return [
-            'customer_id' => \App\Models\Customer::factory(),
-            'plate_number' => fake()->bothify('? #### ??'), // e.g., B 1234 ABC
-            'brand' => fake()->randomElement($brands),
-            'model' => fake()->word(),
+            'plate_number' => fake()->regexify('[H] [1-9]{4} [A-Z]{2}'), // Semarang (H) plates
+            'brand' => fake()->randomElement(['Toyota', 'Honda', 'Suzuki', 'Daihatsu']),
+            'model' => fake()->randomElement(['Avanza', 'Brio', 'Ertiga', 'Xenia', 'Innova']),
             'year' => fake()->year(),
         ];
     }

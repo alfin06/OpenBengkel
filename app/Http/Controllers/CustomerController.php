@@ -17,16 +17,12 @@ class CustomerController extends Controller
             'customers' => Customer::query()
                 ->when($request->input('search'), function ($query, $search) {
                     $query->where('name', 'like', "%{$search}%")
-                        ->orWhere('phone', 'like', "%{$search}%")
-                        ->orWhereHas('vehicles', function ($q) use ($search) {
-                            $q->where('plate_number', 'like', "%{$search}%");
-                        });
+                        ->orWhere('phone', 'like', "%{$search}%");
                 })
-                ->withCount('vehicles')
-                ->latest()
+                ->orderBy('name', 'asc')
                 ->paginate(10)
                 ->withQueryString(),
-            'filters' => $request->only(['search'])
+            'filters' => $request->only(['search']),
         ]);
     }
 

@@ -41,7 +41,9 @@ class HandleInertiaRequests extends Middleware
                 'shop_name' => $settings->shop_name ?? 'OpenBengkel',
                 'shop_address' => $settings->shop_address ?? '',
                 'shop_phone' => $settings->shop_phone ?? '',
-                'logo_path' => $settings->logo_path ? asset('storage/logo/' . $settings->logo_path) : null,
+                'logo_path' => $settings?->logo_path 
+                ? asset('storage/' . $settings->logo_path) 
+                : asset('images/default-logo.png'),
             ],
         ]);
     }
