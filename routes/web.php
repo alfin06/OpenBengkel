@@ -9,6 +9,8 @@ use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\WorkOrderController;
 use App\Http\Controllers\WorkOrderItemController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PartController;
 
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -39,6 +41,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Toggle task completion (Check/Uncheck)
     Route::patch('/work-order-items/{item}', [WorkOrderItemController::class, 'update'])->name('work-order-items.update');
  
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/parts', [PartController::class, 'index'])->name('parts.index');
+    Route::post('/parts', [PartController::class, 'store'])->name('parts.store');
  });
 
 
@@ -51,10 +57,6 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
-
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

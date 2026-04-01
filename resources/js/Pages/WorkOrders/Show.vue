@@ -187,54 +187,71 @@ const printJob = () => {
             </div>
         </div>
 
-        <div class="print-only hidden">
-            <div class="text-center border-b pb-2 mb-2">
-                <img v-if="shop.logo_path" 
-                    :src=" shop.logo_path" 
-                    class="h-12 mx-auto mb-1"/>
-                <label>{{ shop.logo_path }}</label>
+        <div class="print-only">
+            <div class="flex items-center gap-6 border-b-4 border-black pb-4 mb-4">
+                <div v-if="shop.logo_path" class="w-1/4">
+                    <img :src="shop.logo_path" class="h-20 w-auto object-contain" />
+                </div>
                 
-                <h1 class="text-xl font-bold uppercase">{{ shop.shop_name }}</h1>
-                <p class="text-xs" v-if="shop.shop_address">{{ shop.shop_address }}</p>
-                <p class="text-xs" v-if="shop.shop_phone">Telp: {{ shop.shop_phone }}</p>
-            </div>
-            <div class="text-center border-b pb-2 mb-2">
-                <p class="text-sm">Work Order #{{ workOrder.id }}</p>
-                <p class="text-xs">{{ new Date().toLocaleString('id-ID') }}</p>
-            </div>
-
-            <div class="space-y-2 mb-4">
-                <div class="flex justify-between">
-                    <span class="font-bold">PLAT:</span>
-                    <span>{{ workOrder.vehicle.plate_number }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="font-bold">MOBIL:</span>
-                    <span>{{ workOrder.vehicle.brand }} {{ workOrder.vehicle.model }}</span>
-                </div>
-                <div class="flex justify-between border-t pt-1">
-                    <span class="font-bold">KM:</span>
-                    <span>{{ workOrder.odometer || '-' }}</span>
+                <div class="flex-1 text-left">
+                    <h1 class="text-3xl font-bold uppercase tracking-tight">{{ shop.shop_name }}</h1>
+                    <p class="text-sm font-mono mt-1" v-if="shop.shop_address">
+                        {{ shop.shop_address }}
+                    </p>
+                    <p class="text-sm font-mono font-bold" v-if="shop.shop_phone">
+                        Telp: {{ shop.shop_phone }}
+                    </p>
                 </div>
             </div>
 
-            <div class="border-t pt-2">
-                <p class="font-bold mb-1 uppercase text-sm underline text-center">Instruksi Mekanik</p>
-                <ul class="space-y-1">
-                    <li v-for="(item, index) in workOrder.items" :key="item.id" class="text-sm">
-                        {{ Number(index) + 1 }}. [ ] {{ item.task_name }}
-                    </li>
-                </ul>
+            <div class="flex justify-between mb-4">
+                <h2 class="text-xl font-bold underline">WORK ORDER / PERINTAH KERJA</h2>
+                <div class="text-right font-mono">
+                    <p>NO: #{{ workOrder.id }}</p>
+                    <p>TGL: {{ new Date().toLocaleDateString('id-ID') }}</p>
+                </div>
             </div>
 
-            <div class="mt-6 border-t pt-2 text-xs italic">
-                <p>Keluhan: {{ workOrder.complaints || '-' }}</p>
+            <table class="w-full mb-6 border-2 border-black border-collapse font-mono">
+                <tbody>
+                    <tr>
+                        <td class="border-2 border-black p-2 w-1/2"><strong>PLAT:</strong> {{ workOrder.vehicle.plate_number }}</td>
+                        <td class="border-2 border-black p-2 w-1/2"><strong>PEMBAWA:</strong> {{ workOrder.driver_name || 'Owner' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="border-2 border-black p-2"><strong>MOBIL:</strong> {{ workOrder.vehicle.brand }} {{ workOrder.vehicle.model }}</td>
+                        <td class="border-2 border-black p-2"><strong>KM:</strong> {{ workOrder.odometer }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="mb-4 font-mono">
+                <p class="font-bold underline mb-2">INSTRUKSI MEKANIK:</p>
+                <div class="min-h-[300px] border-2 border-black p-4">
+                    <ul class="space-y-2">
+                        <li v-for="(item, index) in workOrder.items" :key="item.id" class="text-lg">
+                            {{ Number(index) + 1 }}. [ ] {{ item.task_name }}
+                        </li>
+                    </ul>
+                </div>
             </div>
-            
-            <div class="mt-8 flex justify-between text-[10px] uppercase">
-                <div class="text-center border-t w-20">Admin</div>
-                <div class="text-center border-t w-20">Mekanik</div>
-            </div>
+
+            <p class="text-sm italic mb-10">Keluhan: {{ workOrder.complaints || '-' }}</p>
+
+            <!-- <div class="grid grid-cols-3 gap-8 text-center mt-auto font-mono">
+                <div>
+                    <p class="mb-16">Hormat Kami,</p>
+                    <div class="border-t border-black pt-2">( Admin )</div>
+                </div>
+                <div>
+                    <p class="mb-16">Mekanik,</p>
+                    <div class="border-t border-black pt-2">( ___________ )</div>
+                </div>
+                <div>
+                    <p class="mb-16">Pelanggan,</p>
+                    <div class="border-t border-black pt-2">( {{ workOrder.driver_name || 'Owner' }} )</div>
+                </div>
+            </div> -->
         </div>
     </AuthenticatedLayout>
 </template>
@@ -246,25 +263,41 @@ const printJob = () => {
 }
 
 @media print {
-    /* 1. Hide the entire App UI */
-    nav, header, aside, .no-print, button, form, .py-12 {
+    /* 1. Hide the entire Web UI */
+    nav, header, footer, button, form, .no-print, .py-12, aside {
         display: none !important;
     }
 
-    /* 2. Show only the Print section */
-    .print-only {
-        display: block !important;
-        width: 80mm; /* Perfect for standard Thermal Printers in Indonesia */
-        margin: 0 auto;
-        font-family: 'Courier New', Courier, monospace; /* Clean "Receipt" look */
-        color: black !important;
+    /* 2. Setup the Dot Matrix Page (Landscape) */
+    @page {
+        /* This forces the printer into Landscape mode */
+        size: landscape; 
+        /* Margin: 0 lets us control spacing via CSS */
+        margin: 0; 
     }
 
-    /* 3. Reset body for printing */
-    body, html {
+    body {
         background: white !important;
         margin: 0;
         padding: 0;
+    }
+
+    .print-only {
+        display: block !important;
+        /* Common Continuous Form Width (minus tractor holes) */
+        width: 210mm; 
+        /* Common Continuous Form Height (Half-Letter/A5 Landscape) */
+        height: 140mm; 
+        margin: 0 auto;
+        padding: 5mm 5mm; /* Extra left/right padding for tractor holes */
+        color: black !important;
+        font-family: "Courier New", Courier, monospace;
+        font-size: 11pt; /* Slightly smaller for dot matrix clarity */
+    }
+
+    /* Ensure borders are visible on the 3rd (yellow) layer */
+    .border-2, .border-black {
+        border: 2px solid black !important;
     }
 }
 </style>
