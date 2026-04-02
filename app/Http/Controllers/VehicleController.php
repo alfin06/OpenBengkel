@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Vehicle;
+use App\Models\WorkOrder;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 
@@ -33,6 +34,7 @@ class VehicleController extends Controller
             'plate_number' => 'required|string|unique:vehicles,plate_number',
             'brand' => 'required|string',
             'model' => 'required|string',
+            'color' => 'nullable|string',
             'year' => 'nullable|integer|min:1900|max:' . (date('Y') + 1),
         ]);
 
@@ -44,9 +46,15 @@ class VehicleController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Vehicle $vehicle)
+    public function show(WorkOrder $workOrder)
     {
-        //
+        return Inertia::render('WorkOrders/Show', [
+            'workOrder' => $workOrder->load([
+                'vehicle.customer', // Now this will work!
+                'items', 
+                'parts.part'
+            ])
+        ]);
     }
 
     /**
@@ -62,7 +70,17 @@ class VehicleController extends Controller
      */
     public function update(Request $request, Vehicle $vehicle)
     {
-        //
+        $validated = $request->validate([
+            'plate_number' => 'required|string|unique:vehicles,plate_number,' . $vehicle->id,
+            'brand' => 'required|string',
+            'model' => 'required|string',
+            'color' => 'nullable|string',
+            'year' => 'nullable|integer',
+        ]);
+
+        $vehicle->update($validated);
+
+        return redirect()->back()->with('success', 'Data mobil berhasil diperbarui!');
     }
 
     /**
@@ -70,6 +88,10 @@ class VehicleController extends Controller
      */
     public function destroy(Vehicle $vehicle)
     {
-        //
+        // Safety Check: If there are Work Orders for this car, you might want to block deletion
+        // or use SoftDeletes. For now, we'll do a straight delete.
+        $vehicle->delete();
+
+        return redirect()->back()->with('success', 'Mobil telah dihapus dari database.');
     }
 }

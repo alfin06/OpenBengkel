@@ -1,12 +1,12 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Toaster } from 'vue-sonner';
+import { Toaster, toast } from 'vue-sonner';
 
 const showingNavigationDropdown = ref(false);
 
@@ -14,9 +14,37 @@ const page = usePage();
 
 // Add a safety check here using optional chaining ?.
 const user = computed(() => page.props.auth?.user ?? null);
+
+// Global listener for Flash Messages
+watch(() => page.props.flash, (flash) => {
+    if (flash?.success) {
+        toast.success(flash.success);
+    }
+    if (flash?.error) {
+        toast.error(flash.error);
+    }
+}, { deep: true });
 </script>
 
 <template>
+    <Toaster 
+        position="top-right" 
+        expand 
+        richColors 
+        closeButton
+        :toastOptions="{
+            style: { 
+                position: 'fixed',
+                top: '20px',
+                right: '20px',
+                zIndex: 99999,
+                background: '#ffffff',
+                border: '2px solid #e2e8f0',
+                padding: '16px',
+                borderRadius: '12px',
+                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
+            },
+        }" />
     <div>
         <div class="min-h-screen bg-gray-100">
             <nav class="border-b border-gray-100 bg-white">
@@ -128,7 +156,5 @@ const user = computed(() => page.props.auth?.user ?? null);
                 <slot />
             </main>
         </div>
-
-        <Toaster position="top-right" richColors />
     </div>
 </template>

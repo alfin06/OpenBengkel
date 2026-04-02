@@ -15,11 +15,12 @@ class CustomerController extends Controller
     {
         return Inertia::render('Customers/Index', [
             'customers' => Customer::query()
+                ->withCount('vehicles') // Ensures the "Mobil" count works
                 ->when($request->input('search'), function ($query, $search) {
                     $query->where('name', 'like', "%{$search}%")
                         ->orWhere('phone', 'like', "%{$search}%");
                 })
-                ->orderBy('name', 'asc')
+                ->orderBy('name', 'asc') // <--- THIS SORTS ALPHABETICALLY (A-Z)
                 ->paginate(10)
                 ->withQueryString(),
             'filters' => $request->only(['search']),
@@ -73,7 +74,16 @@ class CustomerController extends Controller
      */
     public function update(Request $request, Customer $customer)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'required|unique:customers,phone,'.$customer->id,
+            'phone_secondary' => 'nullable|string',
+            'address' => 'nullable|string',
+        ]);
+        
+        $customer->update($validated);
+
+        return redirect()->back();
     }
 
     /**

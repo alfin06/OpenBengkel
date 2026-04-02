@@ -19,27 +19,31 @@ class InvoiceController extends Controller
     }
 
     // Save the final Invoice (separate from Work Order)
-    public function store(Request $request, WorkOrder $workOrder)
+    public function store(Request $request)
     {
         $validated = $request->validate([
-            'items' => 'required|array|min:1',
-            'items.*.description' => 'required|string',
-            'items.*.price' => 'required|numeric|min:0',
+            'work_order_id' => 'required|exists:work_orders,id',
+            'labor_fee' => 'required|numeric|min:0',
+            'discount' => 'required|numeric|min:0',
+            'payment_method' => 'required|string',
         ]);
 
-        // 1. Create the Invoice Header
-        $invoice = Invoice::create([
-            'work_order_id' => $workOrder->id,
-            'total_amount' => collect($request->items)->sum('price'),
-            'payment_status' => 'Unpaid',
-        ]);
+        $wo = WorkOrder::find($validated['work_order_id']);
+        
+        // Calculate final grand total on the server (Security First!)
+        $partsTotal = $wo->parts_total; 
+        $grandTotal = ($partsTotal + $validated['labor_fee']) - $validated['discount'];
 
-        // 2. Save the specific Invoice Items (Independent of Work Order)
-        foreach ($request->items as $item) {
-            $invoice->items()->create($item);
-        }
+        // 1. Create the Invoice
+        $invoice = Invoice::create(array_merge($validated, [
+            'parts_total' => $partsTotal,
+            'grand_total' => $grandTotal,
+        ]));
 
-        return redirect()->route('customers.show', $workOrder->vehicle->customer_id)
-            ->with('success', 'Invoice berhasil dibuat!');
+        // 2. Mark Work Order as 'Selesai'
+        $wo->update(['status' => 'Selesai']);
+
+        return redirect()->route('work-orders.index')
+            ->with('success', 'Pembayaran Berhasil! Job #' . $wo->id . ' ditutup.');
     }
 }

@@ -18,6 +18,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
     Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
     Route::post('/customers/{customer}/vehicles', [VehicleController::class, 'store'])->name('vehicles.store');
+    Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
 
     // Page to prepare the bill
     Route::get('/work-orders/{workOrder}/invoice', [InvoiceController::class, 'create'])->name('invoices.create');
@@ -34,6 +35,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Update Work Order Header
     Route::patch('/work-orders/{workOrder}', [WorkOrderController::class, 'update'])->name('work-orders.update');
     Route::patch('/work-orders/{workOrder}/start', [WorkOrderController::class, 'startWork'])->name('work-orders.start');
+    // Add this inside your authenticated routes group
+    Route::post('/work-orders/{workOrder}/parts', [WorkOrderController::class, 'addPart'])->name('work-orders.parts.store');
+    // Also, while you're there, add the delete route for parts
+    Route::delete('/work-order-parts/{workOrderPart}', [WorkOrderController::class, 'removePart'])->name('work-orders.parts.destroy');
 
     // Update/Delete Work Order Items
     Route::patch('/work-order-items/{item}/update', [WorkOrderItemController::class, 'updateTask'])->name('work-order-items.update-task');
@@ -48,6 +53,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/parts/{part}/restock', [PartController::class, 'restock'])->name('parts.restock');
     // Show the scanning page
     Route::get('/parts/restock', [PartController::class, 'restockPage'])->name('parts.restock.page');
+    Route::get('/parts/search', [PartController::class, 'search'])->name('parts.search');
+
+    Route::put('/vehicles/{vehicle}', [VehicleController::class, 'update'])->name('vehicles.update');
+    Route::delete('/vehicles/{vehicle}', [VehicleController::class, 'destroy'])->name('vehicles.destroy');
  });
 
 

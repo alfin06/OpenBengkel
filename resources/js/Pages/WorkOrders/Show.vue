@@ -1,25 +1,111 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useForm, Head, router, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Pencil, Trash2, X, Check } from 'lucide-vue-next'; // Nice icons for editing
+import { Pencil, Trash2, X, Check, Package, ScanBarcode, Printer, Play, CreditCard, Search } from 'lucide-vue-next';
+import { toast } from 'vue-sonner';
+import axios from 'axios';
+import debounce from 'lodash/debounce';
 
-const props = defineProps<{ workOrder: any }>();
-// Access the page props safely
+const props = defineProps<{ 
+    workOrder: any 
+}>();
+
 const page = usePage();
 
-// Create a computed property so it stays reactive but has a fallback
+// Fallback for Shop Info (used in Print)
 const shop = computed(() => (page.props.shop as any) || {
-    shop_name: 'OpenBengkel',
-    shop_address: '',
-    shop_phone: '',
+    shop_name: 'BENGKEL KALIMAS LUMAS',
+    shop_address: 'Alamat Bengkel Anda',
+    shop_phone: '0812-xxxx-xxxx',
     logo_path: null
 });
 
-// --- 1. Edit Check-in Info Logic ---
+// --- 1. The "Zapper" & Search Logic ---
+const barcodeInput = ref<HTMLInputElement | null>(null);
+const partForm = useForm({ sku: '' });
+const searchResults = ref([]);
+const isSearching = ref(false);
+
+// This function fetches the items from your "Data Barang" table
+const fetchParts = debounce(async (query) => {
+    if (query.length < 2) {
+        searchResults.value = [];
+        return;
+    }
+    
+    isSearching.value = true;
+    try {
+        const response = await axios.get(route('parts.search'), { params: { q: query } });
+        searchResults.value = response.data;
+    } catch (e) {
+        console.error("Search failed", e);
+    } finally {
+        isSearching.value = false;
+    }
+}, 300);
+
+watch(() => partForm.sku, (newVal) => {
+    fetchParts(newVal);
+});
+
+const selectPart = (part: any) => {
+    partForm.sku = part.sku; 
+    handleBarcodeZap(); // Re-use zap logic
+    searchResults.value = [];
+};
+
+const focusBarcode = () => {
+    const target = barcodeInput.value as any;
+    if (!target) return;
+    if (target instanceof HTMLInputElement) {
+        target.focus();
+    } else if (target.$el) {
+        const input = target.$el instanceof HTMLInputElement ? target.$el : target.$el.querySelector('input');
+        input?.focus();
+    }
+};
+
+onMounted(() => focusBarcode());
+
+const handleBarcodeZap = () => {
+    if (!partForm.sku) return;
+    
+    partForm.post(route('work-orders.parts.store', props.workOrder.id), {
+        onSuccess: () => {
+            partForm.reset();
+            searchResults.value = [];
+            focusBarcode();
+        },
+        onError: () => {
+            toast.error("Item tidak ditemukan!");
+            partForm.reset();
+            focusBarcode();
+        },
+        preserveScroll: true,
+    });
+};
+
+// Watch the input for searching names
+watch(() => partForm.sku, async (newVal) => {
+    // Only search if typing (short string), if it's a long barcode scanned fast, 
+    // handleBarcodeZap will usually trigger via 'Enter' before search results matter.
+    if (newVal.length > 2) {
+        try {
+            const response = await axios.get(route('parts.search'), { params: { q: newVal } });
+            searchResults.value = response.data;
+        } catch (e) {
+            console.error("Search failed", e);
+        }
+    } else {
+        searchResults.value = [];
+    }
+});
+
+// --- 2. Edit Check-in Info Logic ---
 const isEditingInfo = ref(false);
 const infoForm = useForm({
     driver_name: props.workOrder.driver_name || '',
@@ -29,22 +115,21 @@ const infoForm = useForm({
 
 const updateInfo = () => {
     infoForm.patch(route('work-orders.update', props.workOrder.id), {
-        onSuccess: () => isEditingInfo.value = false,
+        onSuccess: () => {
+            isEditingInfo.value = false;
+            toast.success("Info Check-in diperbarui");
+        },
     });
 };
 
-// --- 2. Add New Task Logic ---
-const itemForm = useForm({
-    task_name: '',
-});
-
+// --- 3. Task / Instruksi Logic ---
+const itemForm = useForm({ task_name: '' });
 const addItem = () => {
     itemForm.post(route('work-orders.items.store', props.workOrder.id), {
         onSuccess: () => itemForm.reset(),
     });
 };
 
-// --- 3. Edit/Delete Existing Task Logic ---
 const editingItemId = ref<number | null>(null);
 const editItemForm = useForm({ task_name: '' });
 
@@ -65,9 +150,24 @@ const deleteTask = (id: number) => {
     }
 };
 
-const printJob = () => {
-    window.print();
+const deletePart = (id: number) => {
+    if (confirm('Hapus sparepart ini dari daftar?')) {
+        router.delete(route('work-orders.parts.destroy', id), { preserveScroll: true });
+    }
 };
+
+// --- Helpers ---
+const formatIDR = (value: number) => {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency', currency: 'IDR', minimumFractionDigits: 0
+    }).format(value);
+};
+
+const calculateTotal = computed(() => {
+    return props.workOrder.parts.reduce((acc: number, p: any) => acc + (p.price_sold * p.qty), 0);
+});
+
+const printJob = () => window.print();
 </script>
 
 <template>
@@ -75,183 +175,217 @@ const printJob = () => {
     <AuthenticatedLayout>
         <template #header>
             <div class="flex justify-between items-center">
-                <h2 class="text-xl font-semibold">Work Order #{{ workOrder.id }}</h2>
-                <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-bold uppercase">
-                    {{ workOrder.status }}
-                </span>
+                <div class="flex items-center gap-4">
+                    <h2 class="text-xl font-bold">WORK ORDER #{{ workOrder.id }}</h2>
+                    <span :class="[
+                        'px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest',
+                        workOrder.status === 'Selesai' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-800'
+                    ]">
+                        {{ workOrder.status }}
+                    </span>
+                </div>
+                <div class="flex gap-2 no-print">
+                    <Button variant="outline" @click="printJob" class="gap-2">
+                        <Printer class="w-4 h-4" /> Print Job Slip
+                    </Button>
+                </div>
             </div>
         </template>
 
-        <div class="py-12 max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
-                    <CardHeader><CardTitle class="text-sm uppercase text-slate-500">Kendaraan</CardTitle></CardHeader>
+        <div class="py-12 max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6 no-print">
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <Card class="lg:col-span-2 border-2 border-blue-500 shadow-md bg-blue-50/30">
+                    <CardHeader class="pb-2">
+                        <CardTitle class="text-xs font-black text-blue-700 uppercase flex items-center gap-2">
+                            <Search class="w-5 h-5" /> Cari Nama Sparepart atau Scan Barcode
+                        </CardTitle>
+                    </CardHeader>
                     <CardContent>
-                        <p class="font-bold text-lg text-blue-600">{{ workOrder.vehicle.plate_number }}</p>
-                        <p class="font-medium">{{ workOrder.vehicle.brand }} {{ workOrder.vehicle.model }}</p>
+                        <form @submit.prevent="handleBarcodeZap" class="flex gap-4">
+                            <div class="relative flex-1">
+                                <input 
+                                    ref="barcodeInput"
+                                    v-model="partForm.sku"
+                                    placeholder="Ketik Nama Barang atau Scan Barcode..."
+                                    class="w-full text-2xl h-16 px-4 font-mono font-bold border-2 rounded-md border-blue-500 focus:ring-4 focus:ring-blue-200 outline-none bg-white"
+                                    autocomplete="off"
+                                    @keyup.enter="handleBarcodeZap" />
+                                
+                                <div v-if="searchResults.length > 0" 
+                                    class="absolute z-[100] w-full bg-white border-2 border-blue-600 rounded-b-xl shadow-2xl mt-1 max-h-96 overflow-y-auto">
+                                    <div 
+                                        v-for="part in searchResults" 
+                                        :key="part.id" 
+                                        @click="selectPart(part)"
+                                        class="p-4 hover:bg-blue-600 hover:text-white cursor-pointer flex justify-between items-center border-b border-slate-100 transition-all group"
+                                    >
+                                        <div class="flex flex-col">
+                                            <span class="font-black text-lg uppercase">{{ part.name }}</span>
+                                            <span class="text-xs font-mono opacity-70 group-hover:opacity-100">{{ part.sku }}</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="font-bold text-xl">{{ formatIDR(part.sell_price) }}</p>
+                                            <p :class="part.stock > 0 ? 'text-green-500 group-hover:text-white' : 'text-red-500'" class="text-[10px] font-black uppercase">
+                                                Stok: {{ part.stock }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <Button type="submit" class="h-16 px-8 bg-blue-600 font-bold uppercase hover:bg-blue-700">Zap</Button>
+                        </form>
                     </CardContent>
                 </Card>
 
                 <Card>
-                    <CardHeader class="flex flex-row items-center justify-between space-y-0">
-                        <CardTitle class="text-sm uppercase text-slate-500">Check-in Info</CardTitle>
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-xs uppercase text-slate-500">Kendaraan</CardTitle>
                         <Button variant="ghost" size="sm" @click="isEditingInfo = !isEditingInfo">
-                            <Pencil v-if="!isEditingInfo" class="w-4 h-4" />
-                            <span v-else class="text-xs">Batal</span>
+                            <Pencil class="w-3.5 h-3.5" />
                         </Button>
                     </CardHeader>
                     <CardContent>
                         <div v-if="!isEditingInfo" class="space-y-1">
-                            <p><strong>Pembawa:</strong> {{ workOrder.driver_name || 'Owner' }}</p>
-                            <p><strong>KM:</strong> {{ workOrder.odometer || '-' }}</p>
-                            <p><strong>Keluhan:</strong> {{ workOrder.complaints || '-' }}</p>
+                            <div class="flex items-center gap-2">
+                                <div class="bg-slate-900 text-white px-2 py-0.5 rounded font-mono font-bold text-sm">{{ workOrder.vehicle.plate_number }}</div>
+                                <span class="text-sm font-bold">{{ workOrder.vehicle.brand }} {{ workOrder.vehicle.model }}</span>
+                            </div>
+                            <p class="text-xs text-slate-600"><b>Pembawa:</b> {{ workOrder.driver_name || 'Owner' }}</p>
+                            <p class="text-xs text-slate-600"><b>KM:</b> {{ workOrder.odometer || '-' }}</p>
                         </div>
-                        <form v-else @submit.prevent="updateInfo" class="space-y-3">
-                            <Input v-model="infoForm.driver_name" placeholder="Nama Pembawa" />
-                            <Input v-model="infoForm.odometer" type="number" placeholder="KM Odometer" />
-                            <textarea v-model="infoForm.complaints" class="w-full border rounded-md p-2 text-sm" rows="2" placeholder="Keluhan"></textarea>
-                            <Button size="sm" class="w-full bg-blue-600">Simpan Perubahan</Button>
+                        <form v-else @submit.prevent="updateInfo" class="space-y-2">
+                            <Input v-model="infoForm.driver_name" placeholder="Driver" class="h-8 text-xs" />
+                            <Input v-model="infoForm.odometer" placeholder="KM" class="h-8 text-xs" />
+                            <Button size="sm" class="w-full h-8 text-xs bg-blue-600">Simpan</Button>
                         </form>
                     </CardContent>
                 </Card>
             </div>
 
-            <Card>
-                <CardHeader><CardTitle>Instruksi Mekanik</CardTitle></CardHeader>
-                <CardContent class="space-y-4">
-                    <ul class="divide-y border rounded-md overflow-hidden">
-                        <li v-for="item in workOrder.items" :key="item.id" class="p-4 flex justify-between items-center bg-white hover:bg-slate-50 group">
-                            <div v-if="editingItemId !== item.id" class="flex items-center gap-3 flex-1">
-                                <input 
-                                    type="checkbox" 
-                                    :checked="item.is_completed" 
-                                    @change="router.patch(route('work-order-items.update', item.id))"
-                                    class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                />
-                                <span :class="{'line-through text-slate-400': item.is_completed}" class="text-lg">
-                                    {{ item.task_name }}
-                                </span>
-                            </div>
-                            
-                            <div v-else class="flex items-center gap-2 flex-1">
-                                <Input v-model="editItemForm.task_name" class="h-8" />
-                                <Button size="sm" variant="outline" class="h-8 px-2 bg-green-50" @click="updateTaskName(item.id)">
-                                    <Check class="w-4 h-4 text-green-600" />
-                                </Button>
-                                <Button size="sm" variant="outline" class="h-8 px-2 bg-red-50" @click="editingItemId = null">
-                                    <X class="w-4 h-4 text-red-600" />
-                                </Button>
-                            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card class="shadow-sm">
+                    <CardHeader class="bg-slate-50 border-b py-3">
+                        <CardTitle class="text-xs font-bold uppercase text-slate-600 tracking-wider">Instruksi Mekanik</CardTitle>
+                    </CardHeader>
+                    <CardContent class="p-0">
+                        <ul class="divide-y min-h-[150px]">
+                            <li v-for="item in workOrder.items" :key="item.id" class="p-4 flex justify-between items-center group bg-white">
+                                <div v-if="editingItemId !== item.id" class="flex items-center gap-3 flex-1">
+                                    <input type="checkbox" :checked="item.is_completed" @change="router.patch(route('work-order-items.update', item.id))" class="w-5 h-5 rounded border-gray-300 text-blue-600" />
+                                    <span :class="{'line-through text-slate-400 italic': item.is_completed}" class="text-lg">{{ item.task_name }}</span>
+                                </div>
+                                <div v-else class="flex gap-2 flex-1">
+                                    <Input v-model="editItemForm.task_name" class="h-9" />
+                                    <Button size="sm" class="bg-green-600" @click="updateTaskName(item.id)"><Check class="w-4 h-4" /></Button>
+                                </div>
+                                <div v-if="editingItemId !== item.id" class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button variant="ghost" size="sm" @click="startEditTask(item)"><Pencil class="w-4 h-4" /></Button>
+                                    <Button variant="ghost" size="sm" @click="deleteTask(item.id)"><Trash2 class="w-4 h-4 text-red-500" /></Button>
+                                </div>
+                            </li>
+                        </ul>
+                        <div class="p-4 border-t bg-slate-50/50">
+                            <form @submit.prevent="addItem" class="flex gap-2">
+                                <Input v-model="itemForm.task_name" placeholder="Tambah Jasa..." />
+                                <Button class="bg-slate-900 px-6 font-bold">Tambah</Button>
+                            </form>
+                        </div>
+                    </CardContent>
+                </Card>
 
-                            <div v-if="editingItemId !== item.id" class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button variant="ghost" size="sm" @click="startEditTask(item)">
-                                    <Pencil class="w-4 h-4 text-slate-500" />
-                                </Button>
-                                <Button variant="ghost" size="sm" @click="deleteTask(item.id)">
-                                    <Trash2 class="w-4 h-4 text-red-400" />
-                                </Button>
-                            </div>
-                        </li>
-                    </ul>
+                <Card class="shadow-sm border-green-200">
+                    <CardHeader class="bg-green-50/50 border-b py-3 flex flex-row items-center justify-between">
+                        <CardTitle class="text-xs font-bold uppercase text-green-700 tracking-wider">Sparepart Terpakai</CardTitle>
+                        <Package class="w-4 h-4 text-green-600" />
+                    </CardHeader>
+                    <CardContent class="p-0">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50 text-[10px] uppercase font-bold text-slate-500 border-b">
+                                <tr>
+                                    <th class="p-3 text-left">Nama Barang</th>
+                                    <th class="p-3 text-center">Qty</th>
+                                    <th class="p-3 text-right">Harga</th>
+                                    <th class="p-3"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                <tr v-for="part in workOrder.parts" :key="part.id" class="hover:bg-green-50/20">
+                                    <td class="p-3 font-medium">
+                                        {{ part.part.name }}
+                                        <div class="text-[10px] text-slate-400 font-mono">{{ part.part.sku }}</div>
+                                    </td>
+                                    <td class="p-3 text-center font-bold">{{ part.qty }}</td>
+                                    <td class="p-3 text-right font-mono text-blue-700">{{ formatIDR(part.price_sold) }}</td>
+                                    <td class="p-3 text-right">
+                                        <Button variant="ghost" size="icon" @click="deletePart(part.id)" class="h-8 w-8 text-red-400"><X class="w-4 h-4" /></Button>
+                                    </td>
+                                </tr>
+                                <tr v-if="!workOrder.parts.length">
+                                    <td colspan="4" class="p-12 text-center text-slate-400 italic">Scan atau cari sparepart di atas.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </CardContent>
+                </Card>
+            </div>
 
-                    <form @submit.prevent="addItem" class="flex gap-2 pt-2">
-                        <Input v-model="itemForm.task_name" placeholder="Tambah instruksi baru..." class="flex-1" />
-                        <Button :disabled="itemForm.processing" class="bg-blue-600 text-white font-bold">
-                            {{ itemForm.processing ? '...' : 'Tambah' }}
-                        </Button>
-                    </form>
-                </CardContent>
-            </Card>
-
-            <div class="flex justify-end gap-4">
-                <Button 
-                    variant="outline" 
-                    class="border-blue-600 text-blue-600" 
-                    @click="printJob()">
-                    Print Job Slip
-                </Button>
-
-                <Button 
-                    v-if="workOrder.status === 'Pending'"
-                    class="bg-green-600 hover:bg-green-700 px-8"
-                    @click="router.patch(route('work-orders.start', workOrder.id))">
-                    Mulai Pengerjaan
-                </Button>
-
-                <Button 
-                    v-else-if="workOrder.status === 'Proses'"
-                    class="bg-blue-600 hover:bg-blue-700 px-8"
-                    @click="router.get(route('invoices.create', workOrder.id))">
-                    Selesaikan & Buat Invoice
-                </Button>
+            <div class="flex justify-between items-center bg-white p-8 rounded-xl border-2 border-slate-100 shadow-sm">
+                <div>
+                    <p class="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-1">Total Tagihan (Estimasi)</p>
+                    <p class="text-4xl font-black text-blue-600">{{ formatIDR(calculateTotal) }}</p>
+                </div>
+                <div class="flex gap-3">
+                    <Button v-if="workOrder.status === 'Pending'" class="h-14 px-10 bg-green-600 text-lg font-bold gap-2" @click="router.patch(route('work-orders.start', workOrder.id))">
+                        <Play class="w-5 h-5" /> Mulai Kerja
+                    </Button>
+                    <Button v-else-if="workOrder.status === 'Proses'" class="h-14 px-10 bg-blue-600 text-lg font-bold gap-2" @click="router.get(route('invoices.create', workOrder.id))">
+                        <CreditCard class="w-5 h-5" /> Selesai & Bayar
+                    </Button>
+                </div>
             </div>
         </div>
 
         <div class="print-only">
-            <div class="flex items-center gap-6 border-b-4 border-black pb-4 mb-4">
-                <div v-if="shop.logo_path" class="w-1/4">
-                    <img :src="shop.logo_path" class="h-20 w-auto object-contain" />
+            <div class="flex items-center gap-6 border-b-2 border-black pb-2 mb-2">
+                <div class="flex-1">
+                    <h1 class="text-2xl font-bold uppercase">{{ shop.shop_name }}</h1>
+                    <p class="text-[9pt]">{{ shop.shop_address }} | Telp: {{ shop.shop_phone }}</p>
                 </div>
-                
-                <div class="flex-1 text-left">
-                    <h1 class="text-3xl font-bold uppercase tracking-tight">{{ shop.shop_name }}</h1>
-                    <p class="text-sm font-mono mt-1" v-if="shop.shop_address">
-                        {{ shop.shop_address }}
-                    </p>
-                    <p class="text-sm font-mono font-bold" v-if="shop.shop_phone">
-                        Telp: {{ shop.shop_phone }}
-                    </p>
-                </div>
-            </div>
-
-            <div class="flex justify-between mb-4">
-                <h2 class="text-xl font-bold underline">WORK ORDER / PERINTAH KERJA</h2>
-                <div class="text-right font-mono">
-                    <p>NO: #{{ workOrder.id }}</p>
+                <div class="text-right font-mono text-[10pt]">
+                    <p>WO: #{{ workOrder.id }}</p>
                     <p>TGL: {{ new Date().toLocaleDateString('id-ID') }}</p>
                 </div>
             </div>
-
-            <table class="w-full mb-6 border-2 border-black border-collapse font-mono">
+            <div class="text-center font-bold underline mb-2 text-lg uppercase tracking-widest">JOB SLIP / PERINTAH KERJA</div>
+            <table class="w-full mb-3 border border-black border-collapse font-mono text-[10pt]">
                 <tbody>
                     <tr>
-                        <td class="border-2 border-black p-2 w-1/2"><strong>PLAT:</strong> {{ workOrder.vehicle.plate_number }}</td>
-                        <td class="border-2 border-black p-2 w-1/2"><strong>PEMBAWA:</strong> {{ workOrder.driver_name || 'Owner' }}</td>
+                        <td class="border border-black p-1 w-1/2 uppercase"><b>PLAT:</b> {{ workOrder.vehicle.plate_number }}</td>
+                        <td class="border border-black p-1 w-1/2 uppercase"><b>PEMBAWA:</b> {{ workOrder.driver_name || '-' }}</td>
                     </tr>
                     <tr>
-                        <td class="border-2 border-black p-2"><strong>MOBIL:</strong> {{ workOrder.vehicle.brand }} {{ workOrder.vehicle.model }}</td>
-                        <td class="border-2 border-black p-2"><strong>KM:</strong> {{ workOrder.odometer }}</td>
+                        <td class="border border-black p-1 uppercase"><b>MOBIL:</b> {{ workOrder.vehicle.brand }} {{ workOrder.vehicle.model }} ({{ workOrder.vehicle.color }})</td>
+                        <td class="border border-black p-1 uppercase"><b>KM:</b> {{ workOrder.odometer }}</td>
                     </tr>
                 </tbody>
             </table>
-
-            <div class="mb-4 font-mono">
-                <p class="font-bold underline mb-2">INSTRUKSI MEKANIK:</p>
-                <div class="min-h-[300px] border-2 border-black p-4">
-                    <ul class="space-y-2">
-                        <li v-for="(item, index) in workOrder.items" :key="item.id" class="text-lg">
-                            {{ Number(index) + 1 }}. [ ] {{ item.task_name }}
-                        </li>
-                    </ul>
+            <div class="font-mono">
+                <p class="font-bold underline text-[10pt] mb-1 uppercase">Daftar Pengerjaan & Sparepart:</p>
+                <div class="min-h-[220px] border border-black p-2 bg-white">
+                    <div v-for="(item, index) in workOrder.items" :key="'t'+item.id" class="text-[11pt] uppercase">
+                        {{ index + 1 }}. [ ] {{ item.task_name }} (JASA)
+                    </div>
+                    <div v-for="(part, index) in workOrder.parts" :key="'p'+part.id" class="text-[11pt] font-bold uppercase">
+                        {{ workOrder.items.length + index + 1 }}. [ ] {{ part.part.name }} x{{ part.qty }}
+                    </div>
                 </div>
             </div>
-
-            <p class="text-sm italic mb-10">Keluhan: {{ workOrder.complaints || '-' }}</p>
-
-            <!-- <div class="grid grid-cols-3 gap-8 text-center mt-auto font-mono">
-                <div>
-                    <p class="mb-16">Hormat Kami,</p>
-                    <div class="border-t border-black pt-2">( Admin )</div>
-                </div>
-                <div>
-                    <p class="mb-16">Mekanik,</p>
-                    <div class="border-t border-black pt-2">( ___________ )</div>
-                </div>
-                <div>
-                    <p class="mb-16">Pelanggan,</p>
-                    <div class="border-t border-black pt-2">( {{ workOrder.driver_name || 'Owner' }} )</div>
-                </div>
-            </div> -->
+            <p class="text-[9pt] italic mt-2 uppercase">Keluhan: {{ workOrder.complaints || '-' }}</p>
+            <div class="grid grid-cols-2 text-center mt-6 font-mono text-[10pt]">
+                <div><p class="mb-10 uppercase">Mekanik,</p><p>( ___________ )</p></div>
+                <div><p class="mb-10 uppercase">Admin,</p><p>( {{ page.props.auth?.user?.name || 'Admin' }} )</p></div>
+            </div>
         </div>
     </AuthenticatedLayout>
 </template>

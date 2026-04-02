@@ -40,6 +40,7 @@ const isOpen = ref(false);
 const form = useForm({
     name: '',
     phone: '',
+    phone_secondary: '',
     address: '',
 });
 
@@ -82,6 +83,15 @@ const submit = () => {
                                 <div v-if="form.errors.phone" class="text-red-500 text-xs">{{ form.errors.phone }}</div>
                             </div>
                             <div class="grid gap-2">
+                                <Label for="phone_secondary">Nomor Telepon Cadangan (Opsional)</Label>
+                                <Input 
+                                    id="phone_secondary" 
+                                    v-model="form.phone_secondary" 
+                                    placeholder="08... (Nomor kedua)" 
+                                    @input="form.phone_secondary = form.phone_secondary.replace(/[^0-9]/g, '')" 
+                                />
+                            </div>
+                            <div class="grid gap-2">
                                 <Label for="address">Alamat</Label>
                                 <Input id="address" v-model="form.address" placeholder="Alamat singkat" />
                             </div>
@@ -111,14 +121,21 @@ const submit = () => {
                                     <tr>
                                         <th class="p-4 font-bold">Nama</th>
                                         <th class="p-4 font-bold">Telepon</th>
+                                        <th class="p-4 font-bold">Telepon2</th>
                                         <th class="p-4 font-bold text-center">Jumlah Kendaraan</th>
-                                        <th class="p-4 font-bold text-right">Aksi</th>
+                                        <th class="p-4 font-bold text-right">&nbsp;</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y">
                                     <tr v-for="customer in customers.data" :key="customer.id" class="hover:bg-blue-50/50 transition-colors">
                                         <td class="p-4 font-medium text-slate-900">{{ customer.name }}</td>
                                         <td class="p-4 text-slate-600 font-mono text-xs">{{ customer.phone }}</td>
+                                        <td class="p-4 text-slate-600">
+                                            <div class="font-mono text-xs">{{ customer.phone }}</div>
+                                            <div v-if="customer.phone_secondary" class="font-mono text-[10px] text-slate-400 mt-1">
+                                                Alt: {{ customer.phone_secondary }}
+                                            </div>
+                                        </td>
                                         <td class="p-4 text-center">
                                             <span class="px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold uppercase">
                                                 {{ customer.vehicles_count ?? 0 }} Unit

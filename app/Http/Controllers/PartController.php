@@ -8,10 +8,18 @@ use Inertia\Inertia;
 
 class PartController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         return Inertia::render('Parts/Index', [
-            'parts' => Part::orderBy('name')->get()
+            'parts' => Part::query()
+                ->when($request->input('search'), function ($query, $search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('sku', 'like', "%{$search}%");
+                })
+                ->orderBy('name', 'asc') // Alphabetical sorting (A-Z)
+                ->paginate(10)
+                ->withQueryString(),
+            'filters' => $request->only(['search']),
         ]);
     }
 
@@ -55,8 +63,21 @@ class PartController extends Controller
     public function restockPage()
     {
         return Inertia::render('Parts/Restock', [
-            // We send all parts so the Vue page can "find" the one being zapped
-            'parts' => Part::orderBy('name')->get()
+            // Only send 'Part' type items to this page
+            'parts' => Part::where('type', 'Part')
+                ->orderBy('name')
+                ->get()
         ]);
+    }
+
+    public function search(Request $request)
+    {
+        $query = $request->get('q');
+        
+        return Part::where('name', 'LIKE', "%{$query}%")
+            ->orWhere('sku', 'LIKE', "%{$query}%")
+            ->where('stock', '>', -100) // Allow slightly negative if you allow pre-orders
+            ->limit(10)
+            ->get(['id', 'name', 'sku', 'sell_price', 'stock']);
     }
 }

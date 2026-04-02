@@ -20,13 +20,31 @@ class WorkOrder extends Model
         return $this->hasOne(Invoice::class);
     }
 
-   public function vehicle(): BelongsTo
-    {
+    public function vehicle() {
         return $this->belongsTo(Vehicle::class);
     }
 
-    public function items(): HasMany
-    {
+    public function items(): HasMany{
         return $this->hasMany(WorkOrderItem::class);
+    }
+
+    public function tasks() {
+        return $this->hasMany(WorkOrderItem::class);
+    }
+
+    // These are the Parts (Oli, Filter, etc.)
+    public function parts() {
+        return $this->hasMany(WorkOrderPart::class);
+    }
+
+    protected $appends = ['parts_total'];
+
+    public function getPartsTotalAttribute()
+    {
+        // 1. Get the parts as a Collection (not a Query)
+        // 2. Use collect() to ensure the IDE knows we are in "Collection Mode"
+        return collect($this->parts)->sum(function($item) {
+            return (float) ($item->price_sold * $item->qty);
+        });
     }
 }

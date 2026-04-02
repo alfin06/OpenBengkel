@@ -18,8 +18,11 @@ const selectedPart = computed(() => {
     const term = searchSku.value.toLowerCase();
     
     return props.parts.find(p => 
-        (p.sku && p.sku.toLowerCase() === term) || 
-        p.name.toLowerCase().includes(term)
+        // Only allow items that are NOT 'Service'
+        p.type !== 'Service' && (
+            (p.sku && p.sku.toLowerCase() === term) || 
+            p.name.toLowerCase().includes(term)
+        )
     );
 });
 

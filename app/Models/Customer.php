@@ -10,7 +10,12 @@ class Customer extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'phone', 'address'];
+    protected $fillable = [
+        'name',
+        'phone',
+        'phone_secondary',
+        'address',
+    ];
 
     /**
      * Get the vehicles for the customer.

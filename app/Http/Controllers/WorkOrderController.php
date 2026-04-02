@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Vehicle;
 use App\Models\Customer;
+use App\Models\Part;
 use Illuminate\Http\Request;
 
 use Inertia\Inertia;
@@ -52,10 +53,9 @@ class WorkOrderController extends Controller
             ->with('success', 'Work Order berhasil dibuat!');
     }
 
-    public function show(WorkOrder $workOrder)
-    {
+    public function show(WorkOrder $workOrder) {
         return Inertia::render('WorkOrders/Show', [
-            'workOrder' => $workOrder->load('vehicle.customer', 'items'),
+            'workOrder' => $workOrder->load(['vehicle', 'items', 'parts.part'])
         ]);
     }
 
@@ -77,5 +77,52 @@ class WorkOrderController extends Controller
         $workOrder->update(['status' => 'Proses']);
 
         return redirect()->back()->with('success', 'Pengerjaan dimulai! Status: Proses.');
+    }
+
+    public function addPart(Request $request, WorkOrder $workOrder)
+    {
+        $request->validate(['sku' => 'required|string']);
+        
+        $part = Part::where('sku', $request->sku)->first();
+
+        if (!$part) {
+            return back()->with('error', 'Barang tidak ditemukan!');
+        }
+
+        $workOrder->parts()->create([
+            'part_id' => $part->id,
+            'qty' => 1,
+            'price_sold' => $part->sell_price,
+            'cost_at_sale' => $part->buy_price,
+        ]);
+
+        $part->decrement('stock', 1);
+
+        return back()->with('success', "{$part->name} ditambahkan!");
+    }
+
+    public function searchParts(Request $request)
+    {
+        $query = $request->get('q');
+        // Search by Name or SKU
+        return Part::where('name', 'like', "%{$query}%")
+                    ->orWhere('sku', 'like', "%{$query}%")
+                    ->limit(10)
+                    ->get(['id', 'name', 'sku', 'sell_price', 'stock']);
+    }
+
+    public function createInvoice(WorkOrder $workOrder)
+    {
+        $workOrder->load(['vehicle.customer', 'items', 'parts.part']);
+
+        // Let the database multiply and sum in one go
+        $totalParts = $workOrder->parts()
+            ->selectRaw('SUM(price_sold * qty) as total')
+            ->value('total') ?? 0;
+
+        return Inertia::render('Invoices/Create', [
+            'workOrder' => $workOrder,
+            'totalParts' => (float) $totalParts
+        ]);
     }
 }

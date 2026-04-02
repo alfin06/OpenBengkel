@@ -1,16 +1,33 @@
 <script setup lang="ts">
 import { ref, nextTick, watch } from 'vue';
-import { useForm, Head } from '@inertiajs/vue3';
+import { useForm, Head, router, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Package, Wrench, Plus, AlertTriangle } from 'lucide-vue-next';
+import { Package, Wrench, Plus, AlertTriangle, Search } from 'lucide-vue-next';
+import debounce from 'lodash/debounce';
 
-const props = defineProps<{ parts: any[] }>();
+const props = defineProps<{ 
+    parts: {
+        data: any[];
+        links: any[];
+    };
+    filters: {
+        search: string;
+    };
+}>();
 
 const showAddForm = ref(false);
-const skuInputRef = ref<any>(null);
+const search = ref(props.filters?.search || '');
+
+// Search Logic with Debounce
+watch(search, debounce((value) => {
+    router.get(route('parts.index'), { search: value }, { 
+        preserveState: true, 
+        replace: true 
+    });
+}, 300));
 
 const form = useForm({
     name: '',
@@ -25,14 +42,12 @@ const form = useForm({
 watch(showAddForm, async (newValue) => {
     if (newValue) {
         await nextTick();
-        // Focus the SKU input so the brother can just start "zapping"
         const input = document.getElementById('sku-field');
         input?.focus();
     }
 });
 
 const handleSkuEnter = () => {
-    // After scanning, jump to Name field so he doesn't need the mouse
     document.getElementById('name-field')?.focus();
 };
 
@@ -45,7 +60,6 @@ const submit = () => {
     });
 };
 
-// Helper to format Rupiah
 const formatIDR = (value: number) => {
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
@@ -70,6 +84,15 @@ const formatIDR = (value: number) => {
         </template>
 
         <div class="py-12 max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+            <div class="flex items-center max-w-md relative">
+                <Search class="absolute left-3 w-4 h-4 text-slate-400" />
+                <Input 
+                    v-model="search" 
+                    placeholder="Cari nama atau scan barcode..." 
+                    class="pl-10"
+                />
+            </div>
+
             <Card v-if="showAddForm" class="border-blue-200 bg-blue-50/50 shadow-sm">
                 <CardHeader><CardTitle class="text-blue-700">Tambah Item Baru</CardTitle></CardHeader>
                 <CardContent>
@@ -130,7 +153,7 @@ const formatIDR = (value: number) => {
                                 </tr>
                             </thead>
                             <tbody class="divide-y">
-                                <tr v-for="part in parts" :key="part.id" class="hover:bg-blue-50/30 transition-colors">
+                                <tr v-for="part in parts.data" :key="part.id" class="hover:bg-blue-50/30 transition-colors">
                                     <td class="p-4">
                                         <div class="font-bold text-slate-900">{{ part.name }}</div>
                                         <div class="text-[11px] text-slate-400 font-mono tracking-wider">{{ part.sku || 'N/A' }}</div>
@@ -154,13 +177,27 @@ const formatIDR = (value: number) => {
                                         {{ formatIDR(part.sell_price) }}
                                     </td>
                                 </tr>
-                                <tr v-if="parts.length === 0">
+                                <tr v-if="parts.data.length === 0">
                                     <td colspan="4" class="p-12 text-center text-slate-400 italic">
-                                        Belum ada data barang. Klik "Tambah Item" untuk memulai.
+                                        Belum ada data barang.
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+
+                    <div v-if="parts.links.length > 3" class="p-4 border-t flex justify-center items-center gap-1">
+                        <template v-for="(link, k) in parts.links" :key="k">
+                            <div v-if="link.url === null" 
+                                 class="px-3 py-1.5 text-xs text-slate-400 border rounded bg-slate-50"
+                                 v-html="link.label" />
+                            <Link v-else
+                                  :href="link.url"
+                                  v-html="link.label"
+                                  class="px-3 py-1.5 text-xs border rounded transition-colors"
+                                  :class="{ 'bg-blue-600 text-white border-blue-600': link.active, 'bg-white text-slate-700 hover:bg-slate-50': !link.active }" 
+                            />
+                        </template>
                     </div>
                 </CardContent>
             </Card>
