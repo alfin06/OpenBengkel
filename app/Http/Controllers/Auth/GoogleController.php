@@ -31,6 +31,11 @@ class GoogleController extends Controller
                 // Regenerate session for security
                 request()->session()->regenerate();
 
+                if ($user->isAdmin()) {
+                    // Send the Boss to the financial dashboard
+                    return redirect()->intended(route('admin.dashboard', absolute: false));
+                }
+
                 return redirect()->intended(route('dashboard', absolute: false));
             }
 

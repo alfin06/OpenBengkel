@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Traits\UserTracking;
 
 class Vehicle extends Model
 {
     use SoftDeletes;
+    use UserTracking;
 
     protected $fillable = [
         'customer_id', 

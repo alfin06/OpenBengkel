@@ -73,6 +73,9 @@ watch(() => page.props.flash, (flash) => {
                                 <NavLink :href="route('customers.index')" :active="route().current('customers.index')">
                                     Pelanggan
                                 </NavLink>
+                                <NavLink :href="route('expenses.index')" :active="route().current('expenses.index')">
+                                    Buku Pengeluaran
+                                </NavLink>
                                 
                                 <div class="inline-flex items-center">
                                     <Dropdown align="left" width="48">

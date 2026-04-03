@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Part;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -12,70 +13,42 @@ class PartSeeder extends Seeder
      */
     public function run(): void
     {
-        $data = [
-            // SPAREPARTS
-            [
-                'name' => 'Oli Shell Helix HX7 10W-40 (1L)',
-                'sku' => '5011914844391',
-                'buy_price' => 75000,
-                'sell_price' => 95000,
-                'stock' => 24,
-                'type' => 'Part',
-            ],
-            [
-                'name' => 'Filter Oli Toyota Avanza/Innova',
-                'sku' => '15601-BZ010',
-                'buy_price' => 28000,
-                'sell_price' => 45000,
-                'stock' => 10,
-                'type' => 'Part',
-            ],
-            [
-                'name' => 'Kampas Rem Depan Honda Brio',
-                'sku' => '45022-TG0-T00',
-                'buy_price' => 210000,
-                'sell_price' => 285000,
-                'stock' => 4,
-                'type' => 'Part',
-            ],
-            [
-                'name' => 'Aki GS Astra Maintenance Free NS40Z',
-                'sku' => 'GS-NS40Z-MF',
-                'buy_price' => 650000,
-                'sell_price' => 820000,
-                'stock' => 3,
-                'type' => 'Part',
-            ],
+        $parts = [
+            // Kategori: Oli
+            ['name' => 'Oli Yamalube Super Sport 1L', 'sku' => 'OLI-YML-SS', 'buy_price' => 70000, 'sell_price' => 85000, 'stock' => 24, 'type' => 'Part'],
+            ['name' => 'Oli Shell Advance AX7 1L', 'sku' => 'OLI-SHL-AX7', 'buy_price' => 55000, 'sell_price' => 65000, 'stock' => 36, 'type' => 'Part'],
+            ['name' => 'Oli Motul 3100 Gold 1L', 'sku' => 'OLI-MTL-3100', 'buy_price' => 85000, 'sell_price' => 105000, 'stock' => 12, 'type' => 'Part'],
+            ['name' => 'Oli Gardan Yamalube 150ml', 'sku' => 'OLI-GRD-YML', 'buy_price' => 12000, 'sell_price' => 17000, 'stock' => 50, 'type' => 'Part'],
 
-            // SERVICES (JASA)
-            [
-                'name' => 'Jasa Ganti Oli Standard',
-                'sku' => 'SERVICE-OIL',
-                'buy_price' => 0,
-                'sell_price' => 35000,
-                'stock' => 0,
-                'type' => 'Service',
-            ],
-            [
-                'name' => 'Jasa Tune Up Mesin 4-Silinder',
-                'sku' => 'SERVICE-TUNEUP',
-                'buy_price' => 0,
-                'sell_price' => 150000,
-                'stock' => 0,
-                'type' => 'Service',
-            ],
-            [
-                'name' => 'Jasa Cuci Salju & Vacuum',
-                'sku' => 'SERVICE-WASH',
-                'buy_price' => 0,
-                'sell_price' => 50000,
-                'stock' => 0,
-                'type' => 'Service',
-            ],
+            // Kategori: Busi
+            ['name' => 'Busi NGK CPR9EA-9', 'sku' => 'BSI-NGK-CPR9', 'buy_price' => 18000, 'sell_price' => 25000, 'stock' => 40, 'type' => 'Part'],
+            ['name' => 'Busi Denso U27EPR-N9', 'sku' => 'BSI-DNS-U27', 'buy_price' => 15000, 'sell_price' => 22000, 'stock' => 40, 'type' => 'Part'],
+
+            // Kategori: Kampas Rem
+            ['name' => 'Kampas Rem Depan Honda (Cakram)', 'sku' => 'KMP-DPN-HND', 'buy_price' => 40000, 'sell_price' => 55000, 'stock' => 20, 'type' => 'Part'],
+            ['name' => 'Kampas Rem Belakang Yamaha (Tromol)', 'sku' => 'KMP-BLK-YMH', 'buy_price' => 35000, 'sell_price' => 50000, 'stock' => 25, 'type' => 'Part'],
+
+            // Kategori: Filter
+            ['name' => 'Filter Udara Honda Vario 125/150', 'sku' => 'FLT-UDR-VR', 'buy_price' => 30000, 'sell_price' => 45000, 'stock' => 15, 'type' => 'Part'],
+            ['name' => 'Filter Oli Yamaha Vixion', 'sku' => 'FLT-OLI-VX', 'buy_price' => 25000, 'sell_price' => 35000, 'stock' => 20, 'type' => 'Part'],
+
+            // Kategori: CVT & Cairan
+            ['name' => 'V-Belt Honda Beat FI', 'sku' => 'VBL-HND-BT', 'buy_price' => 110000, 'sell_price' => 135000, 'stock' => 10, 'type' => 'Part'],
+            ['name' => 'Air Radiator (Coolant) Honda 1L', 'sku' => 'RAD-HND-1L', 'buy_price' => 35000, 'sell_price' => 45000, 'stock' => 30, 'type' => 'Part'],
+            ['name' => 'Minyak Rem Jumbo 50ml', 'sku' => 'MRM-JMB-50', 'buy_price' => 8000, 'sell_price' => 15000, 'stock' => 50, 'type' => 'Part'],
+            
+            // JASA (Service) - Biasanya bengkel punya kode jasa terpisah agar bisa di-scan atau dipilih
+            ['name' => 'Jasa Servis Ringan / Tune Up', 'sku' => 'JAS-SRV-RGN', 'buy_price' => 0, 'sell_price' => 50000, 'stock' => 999, 'type' => 'Service'],
+            ['name' => 'Jasa Servis CVT', 'sku' => 'JAS-SRV-CVT', 'buy_price' => 0, 'sell_price' => 45000, 'stock' => 999, 'type' => 'Service'],
+            ['name' => 'Jasa Ganti Oli', 'sku' => 'JAS-GNT-OLI', 'buy_price' => 0, 'sell_price' => 10000, 'stock' => 999, 'type' => 'Service'],
         ];
 
-        foreach ($data as $item) {
-            \App\Models\Part::create($item);
+        foreach ($parts as $part) {
+            // Gunakan updateOrCreate agar data tidak ganda jika Seeder dijalankan dua kali
+            Part::updateOrCreate(
+                ['sku' => $part['sku']], 
+                $part
+            );
         }
     }
 }

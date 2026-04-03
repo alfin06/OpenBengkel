@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\UserTracking;
 
 class Invoice extends Model
 {
@@ -19,6 +20,7 @@ class Invoice extends Model
         'amount_paid',
         'customer_reference'
     ];
+    use UserTracking;
 
     public function details()
     {

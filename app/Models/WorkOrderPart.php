@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\UserTracking;
 
 class WorkOrderPart extends Model
 {
+    use UserTracking;
+
     protected $fillable = [
         'work_order_id', 
         'part_id', 

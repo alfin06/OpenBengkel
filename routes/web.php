@@ -10,8 +10,10 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\WorkOrderController;
 use App\Http\Controllers\WorkOrderItemController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\PartController;
 use App\Http\Controllers\Auth\GoogleController;
+use \App\Http\Controllers\ExpenseController;
 
 Route::middleware('guest')->group(function () {
     Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('google.login');
@@ -19,7 +21,13 @@ Route::middleware('guest')->group(function () {
 });
 
 
+Route::middleware(['auth', 'verified', 'admin'])->group(function () {
+    Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+});
+
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
     Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
     Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
@@ -49,8 +57,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/work-order-items/{item}', [WorkOrderItemController::class, 'destroy'])->name('work-order-items.destroy');
     // Toggle task completion (Check/Uncheck)
     Route::patch('/work-order-items/{item}', [WorkOrderItemController::class, 'update'])->name('work-order-items.update');
- 
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/parts', [PartController::class, 'index'])->name('parts.index');
     Route::post('/parts', [PartController::class, 'store'])->name('parts.store');
@@ -68,6 +74,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/receivables', [App\Http\Controllers\InvoiceController::class, 'receivables'])->name('receivables.index');
     // Mark an invoice as paid
     Route::put('/invoices/{invoice}/settle', [App\Http\Controllers\InvoiceController::class, 'settle'])->name('invoices.settle');
+
+    // Buku Pengeluaran (Daily Expenses)
+    Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
+    Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+    Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
  });
 
 

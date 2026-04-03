@@ -14,6 +14,7 @@ import {
     Dialog, DialogContent, DialogHeader, 
     DialogTitle, DialogTrigger, DialogFooter 
 } from '@/Components/ui/dialog';
+import { MessageCircle } from 'lucide-vue-next';
 
 const props = defineProps<{
     customers: {
@@ -52,6 +53,20 @@ const submit = () => {
             toast.success('Pelanggan berhasil ditambahkan');
         },
     });
+};
+
+const getWaLink = (phone: string) => {
+    if (!phone) return '#';
+    
+    // Remove all non-numeric characters (spaces, dashes, plus signs)
+    let cleaned = phone.replace(/[^0-9]/g, '');
+    
+    // Change leading 0 to 62 for Indonesia
+    if (cleaned.startsWith('0')) {
+        cleaned = '62' + cleaned.substring(1);
+    }
+    
+    return `https://wa.me/${cleaned}`;
 };
 </script>
 
@@ -129,9 +144,17 @@ const submit = () => {
                                 <tbody class="divide-y">
                                     <tr v-for="customer in customers.data" :key="customer.id" class="hover:bg-blue-50/50 transition-colors">
                                         <td class="p-4 font-medium text-slate-900">{{ customer.name }}</td>
-                                        <td class="p-4 text-slate-600 font-mono text-xs">{{ customer.phone }}</td>
+                                        <td class="p-4">
+                                            <a v-if="customer.phone" 
+                                                :href="getWaLink(customer.phone)" 
+                                                target="_blank" 
+                                                class="inline-flex items-center gap-1.5 px-2 py-1 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 rounded-md transition-colors font-medium text-sm">
+                                                <MessageCircle class="w-4 h-4 fill-current" />
+                                                {{ customer.phone }}
+                                            </a>
+                                            <span v-else class="text-slate-400 italic text-sm">Kosong</span>
+                                        </td>
                                         <td class="p-4 text-slate-600">
-                                            <div class="font-mono text-xs">{{ customer.phone }}</div>
                                             <div v-if="customer.phone_secondary" class="font-mono text-[10px] text-slate-400 mt-1">
                                                 Alt: {{ customer.phone_secondary }}
                                             </div>
