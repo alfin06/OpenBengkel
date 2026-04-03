@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Vehicle;
 use App\Models\Customer;
+use App\Models\Mechanic;
 use App\Models\Part;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -60,9 +61,17 @@ class WorkOrderController extends Controller
             ->with('success', 'Work Order berhasil dibuat!');
     }
 
-    public function show(WorkOrder $workOrder) {
-        return Inertia::render('WorkOrders/Show', [
-            'workOrder' => $workOrder->load(['vehicle', 'items', 'parts.part'])
+    public function show(WorkOrder $workOrder)
+    {
+        return inertia('WorkOrders/Show', [
+            'workOrder' => $workOrder->load([
+                'vehicle.customer', 
+                'items', 
+                'parts.part',
+                'mechanic'
+            ]),
+            // Fetch all active mechanics to populate the dropdown
+            'mechanics' => Mechanic::where('is_active', true)->get() 
         ]);
     }
 
@@ -72,6 +81,7 @@ class WorkOrderController extends Controller
             'driver_name' => 'nullable|string|max:255',
             'odometer' => 'nullable|numeric',
             'complaints' => 'nullable|string',
+            'mechanic_id' => 'nullable|exists:mechanics,id',
         ]);
 
         $workOrder->update($validated);

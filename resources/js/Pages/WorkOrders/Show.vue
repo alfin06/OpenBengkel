@@ -11,7 +11,8 @@ import axios from 'axios';
 import debounce from 'lodash/debounce';
 
 const props = defineProps<{ 
-    workOrder: any 
+    workOrder: any,
+    mechanics: any[]
 }>();
 
 const page = usePage();
@@ -111,6 +112,7 @@ const infoForm = useForm({
     driver_name: props.workOrder.driver_name || '',
     odometer: props.workOrder.odometer || '',
     complaints: props.workOrder.complaints || '',
+    mechanic_id: props.workOrder.mechanic_id || '',
 });
 
 const updateInfo = () => {
@@ -246,18 +248,58 @@ const printJob = () => window.print();
                         </Button>
                     </CardHeader>
                     <CardContent>
-                        <div v-if="!isEditingInfo" class="space-y-1">
-                            <div class="flex items-center gap-2">
+                        <div v-if="!isEditingInfo" class="space-y-2">
+                            <div class="flex items-center gap-2 mb-3">
                                 <div class="bg-slate-900 text-white px-2 py-0.5 rounded font-mono font-bold text-sm">{{ workOrder.vehicle.plate_number }}</div>
                                 <span class="text-sm font-bold">{{ workOrder.vehicle.brand }} {{ workOrder.vehicle.model }}</span>
                             </div>
-                            <p class="text-xs text-slate-600"><b>Pembawa:</b> {{ workOrder.driver_name || 'Owner' }}</p>
-                            <p class="text-xs text-slate-600"><b>KM:</b> {{ workOrder.odometer || '-' }}</p>
+                            
+                            <div class="grid grid-cols-2 gap-2 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                                <div>
+                                    <p class="text-[10px] uppercase font-bold text-slate-400">Pembawa (Driver)</p>
+                                    <p class="text-sm font-medium text-slate-800">{{ workOrder.driver_name || 'Owner' }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] uppercase font-bold text-slate-400">Odometer</p>
+                                    <p class="text-sm font-mono font-bold text-slate-800">{{ workOrder.odometer || '-' }} KM</p>
+                                </div>
+                            </div>
+
+                            <div class="p-3 bg-blue-50 rounded-lg border border-blue-100 mt-2 flex justify-between items-center">
+                                <div>
+                                    <p class="text-[10px] uppercase font-bold text-blue-500">Mekanik Bertugas</p>
+                                    <p class="text-sm font-black text-blue-900">{{ workOrder.mechanic?.name || 'Belum Ditugaskan' }}</p>
+                                </div>
+                                <Button v-if="!workOrder.mechanic_id" variant="ghost" size="sm" class="text-blue-600 hover:bg-blue-100 h-7 text-xs" @click="isEditingInfo = true">
+                                    Tugaskan
+                                </Button>
+                            </div>
                         </div>
-                        <form v-else @submit.prevent="updateInfo" class="space-y-2">
-                            <Input v-model="infoForm.driver_name" placeholder="Driver" class="h-8 text-xs" />
-                            <Input v-model="infoForm.odometer" placeholder="KM" class="h-8 text-xs" />
-                            <Button size="sm" class="w-full h-8 text-xs bg-blue-600">Simpan</Button>
+
+                        <form v-else @submit.prevent="updateInfo" class="space-y-3">
+                            <div>
+                                <Label class="text-xs text-slate-500">Mekanik</Label>
+                                <select v-model="infoForm.mechanic_id" class="w-full h-9 rounded-md border border-slate-300 text-sm px-3 bg-white">
+                                    <option value="">-- Pilih Mekanik --</option>
+                                    <option v-for="mechanic in mechanics" :key="mechanic.id" :value="mechanic.id">
+                                        {{ mechanic.name }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <Label class="text-xs text-slate-500">Driver</Label>
+                                    <Input v-model="infoForm.driver_name" placeholder="Driver" class="h-9 text-xs" />
+                                </div>
+                                <div>
+                                    <Label class="text-xs text-slate-500">KM</Label>
+                                    <Input v-model="infoForm.odometer" placeholder="KM" class="h-9 text-xs font-mono" />
+                                </div>
+                            </div>
+                            <div class="flex gap-2 pt-2">
+                                <Button type="button" variant="outline" size="sm" class="w-full h-9" @click="isEditingInfo = false">Batal</Button>
+                                <Button type="submit" size="sm" class="w-full h-9 bg-blue-600">Simpan Data</Button>
+                            </div>
                         </form>
                     </CardContent>
                 </Card>

@@ -14,6 +14,7 @@ class WorkOrder extends Model
         'odometer',
         'complaints',
         'status',
+        'mechanic_id',
     ];
 
     public function invoice() {
@@ -47,5 +48,10 @@ class WorkOrder extends Model
         return collect($this->parts)->sum(function($item) {
             return (float) ($item->price_sold * $item->qty);
         });
+    }
+
+    public function mechanic()
+    {
+        return $this->belongsTo(Mechanic::class);
     }
 }
