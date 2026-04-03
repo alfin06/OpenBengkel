@@ -18,18 +18,23 @@ class WorkOrderController extends Controller
 {
     public function create(Request $request)
     {
-        $search = $request->input('plate');
-        $vehicle = null;
+        $foundVehicle = null;
 
-        if ($search) {
-            $vehicle = Vehicle::where('plate_number', 'like', "%{$search}%")
-                ->with('customer')
+        // If coming from the search bar (plate typing)
+        if ($request->filled('plate')) {
+            $foundVehicle = Vehicle::with('customer')
+                ->where('plate_number', 'LIKE', '%' . $request->plate . '%')
                 ->first();
+        } 
+        // If coming from the Customer/History page Check-In button
+        elseif ($request->filled('vehicle_id')) {
+            $foundVehicle = Vehicle::with('customer')
+                ->find($request->vehicle_id);
         }
 
-        return Inertia::render('WorkOrders/CheckIn', [
-            'foundVehicle' => $vehicle,
-            'filters' => $request->only(['plate'])
+        return inertia('WorkOrders/CheckIn', [
+            'foundVehicle' => $foundVehicle,
+            'filters' => $request->only('plate', 'vehicle_id'),
         ]);
     }
 

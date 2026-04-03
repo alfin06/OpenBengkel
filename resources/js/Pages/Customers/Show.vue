@@ -11,7 +11,7 @@ import {
     Dialog, DialogContent, DialogHeader, 
     DialogTitle, DialogTrigger, DialogFooter 
 } from '@/Components/ui/dialog';
-import { Pencil, Trash2, History, Car, UserCircle } from 'lucide-vue-next';
+import { Pencil, Trash2, History, Car, UserCircle, ArrowLeft } from 'lucide-vue-next';
 
 const props = defineProps<{ customer: any }>();
 
@@ -116,7 +116,7 @@ const deleteVehicle = (id: number) => {
                     </div>
                 </div>
                 <Link :href="route('customers.index')">
-                    <Button variant="outline">Kembali ke Daftar</Button>
+                    <Button variant="outline"><ArrowLeft class="w-4 h-4 mr-2" /> Kembali</Button>
                 </Link>
             </div>
         </template>
