@@ -11,6 +11,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 use App\Models\WorkOrder;
+use App\Models\WorkOrderPart;
 
 class WorkOrderController extends Controller
 {
@@ -111,18 +112,28 @@ class WorkOrderController extends Controller
                     ->get(['id', 'name', 'sku', 'sell_price', 'stock']);
     }
 
-    public function createInvoice(WorkOrder $workOrder)
+    public function createInvoice($id)
     {
-        $workOrder->load(['vehicle.customer', 'items', 'parts.part']);
+        // 1. Get the Work Order with basic info
+        $workOrder = WorkOrder::with(['vehicle.customer', 'items'])->findOrFail($id);
 
-        // Let the database multiply and sum in one go
-        $totalParts = $workOrder->parts()
-            ->selectRaw('SUM(price_sold * qty) as total')
-            ->value('total') ?? 0;
+        // 2. Get the Parts directly from the database to be 100% sure
+        $formattedParts = WorkOrderPart::where('work_order_id', $id)
+            ->with('Part')
+            ->get()
+            ->map(function ($p) {
+                return [
+                    'name' => $p->part ? $p->part->name : 'Barang #' . $p->part_id,
+                    'qty' => (int) $p->qty,
+                    'price' => (float) $p->price_sold,
+                    'type' => 'part'
+                ];
+            });
 
         return Inertia::render('Invoices/Create', [
             'workOrder' => $workOrder,
-            'totalParts' => (float) $totalParts
+            'formattedParts' => $formattedParts,
+            'totalParts' => (float) $workOrder->parts_total,
         ]);
     }
 }

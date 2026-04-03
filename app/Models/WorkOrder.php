@@ -33,8 +33,9 @@ class WorkOrder extends Model
     }
 
     // These are the Parts (Oli, Filter, etc.)
-    public function parts() {
-        return $this->hasMany(WorkOrderPart::class);
+    public function parts(): HasMany 
+    {
+        return $this->hasMany(WorkOrderPart::class, 'work_order_id');
     }
 
     protected $appends = ['parts_total'];

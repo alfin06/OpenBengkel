@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WorkOrderPart extends Model
 {
@@ -15,9 +16,10 @@ class WorkOrderPart extends Model
     ];
 
     // Link back to the Inventory Item
-    public function part()
+    public function part(): BelongsTo 
     {
-        return $this->belongsTo(Part::class);
+        // Explicitly define the foreign key (part_id)
+        return $this->belongsTo(Part::class, 'part_id');
     }
 
     // Link back to the Work Order

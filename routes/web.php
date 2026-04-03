@@ -21,7 +21,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
 
     // Page to prepare the bill
-    Route::get('/work-orders/{workOrder}/invoice', [InvoiceController::class, 'create'])->name('invoices.create');
+    Route::get('/work-orders/{workOrder}/invoice', [WorkOrderController::class, 'createInvoice'])->name('invoices.create');
     // Action to save the bill
     Route::post('/work-orders/{workOrder}/invoice', [InvoiceController::class, 'store'])->name('invoices.store');
     
