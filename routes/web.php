@@ -11,6 +11,12 @@ use App\Http\Controllers\WorkOrderController;
 use App\Http\Controllers\WorkOrderItemController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PartController;
+use App\Http\Controllers\Auth\GoogleController;
+
+Route::middleware('guest')->group(function () {
+    Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('google.login');
+    Route::get('/auth/google/callback', [GoogleController::class, 'callback']);
+});
 
 
 Route::middleware(['auth', 'verified'])->group(function () {
