@@ -6,6 +6,7 @@ use App\Models\Vehicle;
 use App\Models\Customer;
 use App\Models\Part;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 use Inertia\Inertia;
 use Inertia\Response;
@@ -117,6 +118,8 @@ class WorkOrderController extends Controller
         // 1. Get the Work Order with basic info
         $workOrder = WorkOrder::with(['vehicle.customer', 'items'])->findOrFail($id);
 
+        $shop = DB::table('settings')->first();
+
         // 2. Get the Parts directly from the database to be 100% sure
         $formattedParts = WorkOrderPart::where('work_order_id', $id)
             ->with('Part')
@@ -133,6 +136,7 @@ class WorkOrderController extends Controller
         return Inertia::render('Invoices/Create', [
             'workOrder' => $workOrder,
             'formattedParts' => $formattedParts,
+            'shop' => $shop,
             'totalParts' => (float) $workOrder->parts_total,
         ]);
     }

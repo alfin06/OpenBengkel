@@ -36,6 +36,7 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
+                'print_id' => fn () => $request->session()->get('print_id'), // ADD THIS
             ],
             'shop' => [
                 'shop_name' => $settings->shop_name ?? 'OpenBengkel',
@@ -44,6 +45,7 @@ class HandleInertiaRequests extends Middleware
                 'logo_path' => $settings?->logo_path 
                 ? asset('storage/' . $settings->logo_path) 
                 : asset('images/default-logo.png'),
+                'logo_url' => $settings?->logo_path ? asset('storage/' . $settings->logo_path) : null,
             ],
         ]);
     }

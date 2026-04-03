@@ -195,10 +195,16 @@ const deleteVehicle = (id: number) => {
                         <p class="text-sm text-slate-500 uppercase font-medium">{{ vehicle.color || '-' }} • {{ vehicle.year || '-' }}</p>
                         
                         <div class="mt-6 flex gap-2">
-                             <Button variant="outline" size="sm" class="flex-1 text-xs gap-1">
-                                <History class="w-3 h-3" /> History
-                             </Button>
-                             <Button size="sm" class="flex-1 bg-blue-600 text-xs font-bold uppercase tracking-tighter">Check-In</Button>
+                            <Link :href="route('vehicles.show', vehicle.id)" class="flex-1">
+                                <Button variant="outline" size="sm" class="w-full text-xs gap-1">
+                                    <History class="w-3 h-3" /> Riwayat Servis
+                                </Button>
+                            </Link>
+                            <Link :href="route('work-orders.create', { vehicle_id: vehicle.id })" class="flex-1">
+                                <Button size="sm" class="w-full bg-blue-600 hover:bg-blue-700 text-xs font-bold uppercase tracking-tighter">
+                                    Check-In
+                                </Button>
+                            </Link>
                         </div>
                     </CardContent>
                 </Card>

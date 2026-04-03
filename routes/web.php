@@ -22,8 +22,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Page to prepare the bill
     Route::get('/work-orders/{workOrder}/invoice', [WorkOrderController::class, 'createInvoice'])->name('invoices.create');
-    // Action to save the bill
-    Route::post('/work-orders/{workOrder}/invoice', [InvoiceController::class, 'store'])->name('invoices.store');
     
     // The main Check-In page (License Plate Search)
     Route::get('/work-orders/check-in', [WorkOrderController::class, 'create'])->name('work-orders.create');
@@ -57,6 +55,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::put('/vehicles/{vehicle}', [VehicleController::class, 'update'])->name('vehicles.update');
     Route::delete('/vehicles/{vehicle}', [VehicleController::class, 'destroy'])->name('vehicles.destroy');
+    Route::get('/vehicles/{vehicle}', [VehicleController::class, 'show'])->name('vehicles.show');
+
+    Route::post('/invoices', [InvoiceController::class, 'store'])->name('invoices.store');
+   // View all unpaid invoices
+    Route::get('/receivables', [App\Http\Controllers\InvoiceController::class, 'receivables'])->name('receivables.index');
+    // Mark an invoice as paid
+    Route::put('/invoices/{invoice}/settle', [App\Http\Controllers\InvoiceController::class, 'settle'])->name('invoices.settle');
  });
 
 

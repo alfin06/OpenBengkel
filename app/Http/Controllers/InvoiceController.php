@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\WorkOrder;
 use App\Models\Invoice;
-use App\Models\InvoiceItem;
+use App\Models\InvoiceDetail;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+
+use Illuminate\Support\Facades\DB;
 
 class InvoiceController extends Controller
 {
@@ -21,29 +23,62 @@ class InvoiceController extends Controller
     // Save the final Invoice (separate from Work Order)
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'work_order_id' => 'required|exists:work_orders,id',
-            'labor_fee' => 'required|numeric|min:0',
-            'discount' => 'required|numeric|min:0',
-            'payment_method' => 'required|string',
+        // 1. Calculate Totals from the request
+        $items = collect($request->items);
+        $partsTotal = $items->where('type', 'part')->sum(fn($i) => $i['price'] * $i['qty']);
+        $grandTotal = $items->sum(fn($i) => $i['price'] * $i['qty']) - $request->discount;
+
+        // 2. Wrap in a Transaction for safety
+        return DB::transaction(function () use ($request, $partsTotal, $grandTotal) {
+            $invoice = Invoice::create([
+                'work_order_id'  => $request->work_order_id,
+                'grand_total'    => $grandTotal,
+                'parts_total'    => $partsTotal,
+                'status'         => $request->status ?? 'paid', 
+                'payment_method' => $request->payment_method,
+                'due_date'       => $request->due_date,
+                'amount_paid'    => ($request->status === 'paid') ? $grandTotal : ($request->amount_paid ?? 0),
+            ]);
+
+            foreach ($request->items as $item) {
+                $invoice->details()->create([
+                    'item_name' => $item['name'],
+                    'qty'       => $item['qty'],
+                    'price'     => $item['price'],
+                    'subtotal'  => $item['price'] * $item['qty'],
+                ]);
+            }
+
+            // Mark WO as completed
+            WorkOrder::where('id', $request->work_order_id)->update(['status' => 'Selesai']);
+
+            // IMPORTANT: We stay on the same page!
+            return redirect()->back()->with('success', 'Invoice Berhasil Disimpan!');
+        });
+    }
+
+    // 1. Fetch the data for the Receivables page
+    public function receivables()
+    {
+        $invoices = Invoice::with(['workOrder.vehicle.customer'])
+            ->where('status', 'unpaid')
+            ->orderBy('due_date', 'asc')
+            ->get();
+
+        return inertia('Invoices/Receivables', [
+            'invoices' => $invoices
+        ]);
+    }
+
+    // 2. Update the status when the company settles the bill
+    public function settle(Request $request, Invoice $invoice)
+    {
+        $invoice->update([
+            'status' => 'paid',
+            'amount_paid' => $invoice->grand_total, // Bumps the paid amount to 100%
+            'payment_method' => $request->payment_method ?? 'Transfer',
         ]);
 
-        $wo = WorkOrder::find($validated['work_order_id']);
-        
-        // Calculate final grand total on the server (Security First!)
-        $partsTotal = $wo->parts_total; 
-        $grandTotal = ($partsTotal + $validated['labor_fee']) - $validated['discount'];
-
-        // 1. Create the Invoice
-        $invoice = Invoice::create(array_merge($validated, [
-            'parts_total' => $partsTotal,
-            'grand_total' => $grandTotal,
-        ]));
-
-        // 2. Mark Work Order as 'Selesai'
-        $wo->update(['status' => 'Selesai']);
-
-        return redirect()->route('work-orders.index')
-            ->with('success', 'Pembayaran Berhasil! Job #' . $wo->id . ' ditutup.');
+        return redirect()->back()->with('success', 'Receivable for Invoice #' . $invoice->id . ' has been settled!');
     }
 }

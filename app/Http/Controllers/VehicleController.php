@@ -6,6 +6,7 @@ use App\Models\Vehicle;
 use App\Models\WorkOrder;
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class VehicleController extends Controller
 {
@@ -46,14 +47,32 @@ class VehicleController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(WorkOrder $workOrder)
+    // public function show(WorkOrder $workOrder)
+    // {
+    //     return Inertia::render('WorkOrders/Show', [
+    //         'workOrder' => $workOrder->load([
+    //             'vehicle.customer', // Now this will work!
+    //             'items', 
+    //             'parts.part'
+    //         ])
+    //     ]);
+    // }
+
+    /**
+     * Display the specified resource (Vehicle Medical Record).
+     */
+    public function show(Vehicle $vehicle)
     {
-        return Inertia::render('WorkOrders/Show', [
-            'workOrder' => $workOrder->load([
-                'vehicle.customer', // Now this will work!
-                'items', 
-                'parts.part'
-            ])
+        // Load the customer, and load all work orders with their invoices, sorted by newest first
+        $vehicle->load([
+            'customer', 
+            'workOrders' => function ($query) {
+                $query->orderBy('created_at', 'desc')->with('invoice');
+            }
+        ]);
+
+        return Inertia::render('Vehicles/Show', [
+            'vehicle' => $vehicle
         ]);
     }
 
