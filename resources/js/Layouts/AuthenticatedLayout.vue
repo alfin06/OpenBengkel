@@ -56,7 +56,7 @@ watch(() => page.props.flash, (flash) => {
                         
                         <div class="flex">
                             <div class="flex shrink-0 items-center">
-                                <Link :href="route('dashboard')">
+                                <Link :href="user?.role === 'admin' ? route('admin.dashboard') : route('dashboard')">
                                     <ApplicationLogo 
                                         :logo-url="$page.props.shop?.logo_path" 
                                         class="block h-9 w-auto fill-current text-blue-600" />
@@ -64,9 +64,22 @@ watch(() => page.props.flash, (flash) => {
                             </div>
 
                             <div class="hidden space-x-6 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
-                                    Dashboard
-                                </NavLink>
+                                
+                                <template v-if="user?.role === 'admin'">
+                                    <NavLink :href="route('admin.dashboard')" :active="route().current('admin.dashboard')">
+                                        Dashboard Admin
+                                    </NavLink>
+                                    <NavLink :href="route('admin.mechanics.index')" :active="route().current('admin.mechanics.*')">
+                                        Manajemen Mekanik
+                                    </NavLink>
+                                </template>
+
+                                <template v-if="user?.role === 'staff'">
+                                    <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
+                                        Dashboard Operasional
+                                    </NavLink>
+                                </template>
+
                                 <NavLink :href="route('work-orders.create')" :active="route().current('work-orders.create')">
                                     Check-In Mobil
                                 </NavLink>
@@ -96,7 +109,7 @@ watch(() => page.props.flash, (flash) => {
                                         </template>
                                     </Dropdown>
                                 </div>
-                                </div>
+                            </div>
                         </div>
 
                         <div class="hidden sm:flex sm:items-center sm:ms-6">
@@ -141,9 +154,19 @@ watch(() => page.props.flash, (flash) => {
 
                 <div :class="{ block: showingNavigationDropdown, hidden: !showingNavigationDropdown }" class="sm:hidden no-print">
                     <div class="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')"> Dashboard </ResponsiveNavLink>
+                        
+                        <template v-if="user?.role === 'admin'">
+                            <ResponsiveNavLink :href="route('admin.dashboard')" :active="route().current('admin.dashboard')"> Dashboard Admin </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('admin.mechanics.index')" :active="route().current('admin.mechanics.*')"> Manajemen Mekanik </ResponsiveNavLink>
+                        </template>
+
+                        <template v-if="user?.role === 'staff'">
+                            <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')"> Dashboard Operasional </ResponsiveNavLink>
+                        </template>
+
                         <ResponsiveNavLink :href="route('work-orders.create')" :active="route().current('work-orders.create')"> Check-In Mobil </ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('customers.index')" :active="route().current('customers.index')"> Pelanggan </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('expenses.index')" :active="route().current('expenses.index')"> Buku Pengeluaran </ResponsiveNavLink>
                         
                         <div class="pt-4 pb-1 border-t border-gray-100">
                             <div class="px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Manajemen Stok</div>

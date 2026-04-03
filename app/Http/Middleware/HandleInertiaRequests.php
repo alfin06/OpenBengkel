@@ -47,6 +47,14 @@ class HandleInertiaRequests extends Middleware
                 : asset('images/default-logo.png'),
                 'logo_url' => $settings?->logo_path ? asset('storage/' . $settings->logo_path) : null,
             ],
+            'auth' => [
+                'user' => $request->user() ? [
+                    'id' => $request->user()->id,
+                    'name' => $request->user()->name,
+                    'email' => $request->user()->email,
+                    'role' => $request->user()->role, // 👈 ADD THIS LINE!
+                ] : null,
+            ],
         ]);
     }
 }

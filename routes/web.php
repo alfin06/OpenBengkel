@@ -10,7 +10,8 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\WorkOrderController;
 use App\Http\Controllers\WorkOrderItemController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\MechanicController;
 use App\Http\Controllers\PartController;
 use App\Http\Controllers\Auth\GoogleController;
 use \App\Http\Controllers\ExpenseController;
@@ -23,11 +24,14 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+    Route::resource('/admin/mechanics', MechanicController::class)->names('admin.mechanics');
+});
+
+Route::middleware(['auth', 'verified', 'staff'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
     Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
     Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
