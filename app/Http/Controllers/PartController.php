@@ -80,4 +80,32 @@ class PartController extends Controller
             ->limit(10)
             ->get(['id', 'name', 'sku', 'sell_price', 'stock']);
     }
+
+    public function update(Request $request, Part $part)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'brand' => 'nullable|string|max:255',
+            'sku' => 'nullable|string|max:100|unique:parts,sku,' . $part->id,
+            'buy_price' => 'required|numeric|min:0',
+            'sell_price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'min_stock' => 'required|integer|min:0',
+            'discount_percent' => 'nullable|integer|min:0|max:100',
+        ]);
+
+        $validated['discount_percent'] = $validated['discount_percent'] ?? 0;
+        $validated['min_stock'] = $validated['min_stock'] ?? 5;
+
+        $part->update($validated);
+
+        return redirect()->back()->with('success', 'Data stok barang berhasil diperbarui!');
+    }
+
+    public function destroy(Part $part)
+    {
+        $part->delete(); // This now soft-deletes automatically
+
+        return redirect()->back()->with('success', 'Barang berhasil dihapus dari inventaris.');
+    }
 }

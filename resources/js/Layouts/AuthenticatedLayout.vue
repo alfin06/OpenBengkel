@@ -69,9 +69,6 @@ watch(() => page.props.flash, (flash) => {
                                     <NavLink :href="route('admin.dashboard')" :active="route().current('admin.dashboard')">
                                         Dashboard Admin
                                     </NavLink>
-                                    <NavLink :href="route('admin.mechanics.index')" :active="route().current('admin.mechanics.*')">
-                                        Manajemen Mekanik
-                                    </NavLink>
                                 </template>
 
                                 <template v-if="user?.role === 'staff'">
@@ -96,7 +93,7 @@ watch(() => page.props.flash, (flash) => {
                                             <button type="button" 
                                                 class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out h-16 focus:outline-none"
                                                 :class="route().current('parts.*') ? 'border-blue-600 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'">
-                                                Manajemen Stok
+                                                Pengaturan Data
                                                 <svg class="ms-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                                 </svg>
@@ -106,6 +103,9 @@ watch(() => page.props.flash, (flash) => {
                                         <template #content>
                                             <DropdownLink :href="route('parts.index')"> Data Stok </DropdownLink>
                                             <DropdownLink :href="route('parts.restock.page')"> Restock Barang </DropdownLink>
+                                            <DropdownLink :href="route('admin.mechanics.index')" v-if="user?.role === 'admin'">
+                                                Manajemen Mekanik
+                                            </DropdownLink>
                                         </template>
                                     </Dropdown>
                                 </div>
@@ -118,14 +118,11 @@ watch(() => page.props.flash, (flash) => {
                                     <template #trigger>
                                         <span class="inline-flex rounded-md">
                                             <button type="button" class="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-600 transition duration-150 ease-in-out hover:text-gray-900 focus:outline-none">
-                                                
                                                 <span v-if="user?.role" class="mr-2 px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded-full" 
                                                       :class="user.role === 'admin' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'">
                                                     {{ user.role }}
                                                 </span>
-                                                
                                                 {{ user?.name || 'User' }}
-
                                                 <svg class="-me-0.5 ms-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                                 </svg>
@@ -134,6 +131,12 @@ watch(() => page.props.flash, (flash) => {
                                     </template>
 
                                     <template #content>
+                                        <DropdownLink v-if="user?.role === 'admin'" :href="route('admin.users.index')">
+                                            Pengaturan User
+                                        </DropdownLink>
+                                        <DropdownLink v-if="user?.role === 'admin'" :href="route('admin.settings.edit')">
+                                            Pengaturan Bengkel
+                                        </DropdownLink>
                                         <DropdownLink :href="route('profile.edit')"> Profile </DropdownLink>
                                         <DropdownLink :href="route('logout')" method="post" as="button"> Log Out </DropdownLink>
                                     </template>
@@ -184,6 +187,9 @@ watch(() => page.props.flash, (flash) => {
                         </div>
 
                         <div class="mt-3 space-y-1">
+                            <ResponsiveNavLink v-if="user?.role === 'admin'" :href="route('admin.settings.edit')" :active="route().current('admin.settings.edit')">
+                                Pengaturan Bengkel
+                            </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('profile.edit')"> Profile </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('logout')" method="post" as="button"> Log Out </ResponsiveNavLink>
                         </div>
@@ -205,7 +211,6 @@ watch(() => page.props.flash, (flash) => {
 </template>
 
 <style>
-/* Global print CSS to ensure high-contrast black and white for receipts */
 @media print {
     .no-print {
         display: none !important;

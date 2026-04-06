@@ -229,8 +229,8 @@ const mapEmbedUrl = computed(() => {
 
         <footer class="bg-slate-950 py-8 text-center border-t border-slate-800">
             <p class="text-slate-500 font-medium text-sm">
-                &copy; {{ new Date().getFullYear() }} {{ shop.shop_name || 'Bengkel Kami' }}. Hak Cipta Dilindungi.<br>
-                <span class="text-xs mt-2 block opacity-50">Powered by <a href="https://finicode.com/" target="_blank" class="text-blue-400 hover:text-blue-300">Finicode</a></span>
+                &copy; {{ new Date().getFullYear() }} {{ shop.shop_name || 'Bengkel Kami' }}. All rights reserved.<br>
+                <span class="text-xs mt-2 block opacity-50">Developed by <a href="https://finicode.com/" target="_blank" class="text-blue-400 hover:text-blue-300">Finicode</a></span>
             </p>
         </footer>
 
