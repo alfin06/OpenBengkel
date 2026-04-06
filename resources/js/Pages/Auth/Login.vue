@@ -118,10 +118,6 @@ const submit = () => {
                             <input type="checkbox" name="remember" v-model="form.remember" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500" />
                             <span class="ms-2 text-sm text-gray-600">Ingat saya</span>
                         </label>
-
-                        <Link v-if="canResetPassword" :href="route('password.request')" class="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline">
-                            Lupa password?
-                        </Link>
                     </div>
 
                     <div class="mt-6">
