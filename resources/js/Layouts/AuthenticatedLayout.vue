@@ -67,13 +67,13 @@ watch(() => page.props.flash, (flash) => {
                                 
                                 <template v-if="user?.role === 'admin'">
                                     <NavLink :href="route('admin.dashboard')" :active="route().current('admin.dashboard')">
-                                        Dashboard Admin
+                                        Dashboard
                                     </NavLink>
                                 </template>
 
                                 <template v-if="user?.role === 'staff'">
                                     <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
-                                        Dashboard Operasional
+                                        Dashboard
                                     </NavLink>
                                 </template>
 
@@ -162,12 +162,12 @@ watch(() => page.props.flash, (flash) => {
                     <div class="space-y-1 pb-3 pt-2">
                         
                         <template v-if="user?.role === 'admin'">
-                            <ResponsiveNavLink :href="route('admin.dashboard')" :active="route().current('admin.dashboard')"> Dashboard Admin </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('admin.dashboard')" :active="route().current('admin.dashboard')"> Dashboard </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('admin.mechanics.index')" :active="route().current('admin.mechanics.*')"> Manajemen Mekanik </ResponsiveNavLink>
                         </template>
 
                         <template v-if="user?.role === 'staff'">
-                            <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')"> Dashboard Operasional </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')"> Dashboard </ResponsiveNavLink>
                         </template>
 
                         <ResponsiveNavLink :href="route('work-orders.create')" :active="route().current('work-orders.create')"> Check-In Mobil </ResponsiveNavLink>
