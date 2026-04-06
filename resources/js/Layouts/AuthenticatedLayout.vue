@@ -137,6 +137,9 @@ watch(() => page.props.flash, (flash) => {
                                         <DropdownLink v-if="user?.role === 'admin'" :href="route('admin.settings.edit')">
                                             Pengaturan Bengkel
                                         </DropdownLink>
+                                        <DropdownLink v-if="user?.role === 'admin'" :href="route('admin.reports.index')">
+                                            Laporan Keuangan
+                                        </DropdownLink>
                                         <DropdownLink :href="route('profile.edit')"> Profile </DropdownLink>
                                         <DropdownLink :href="route('logout')" method="post" as="button"> Log Out </DropdownLink>
                                     </template>

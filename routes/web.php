@@ -17,6 +17,7 @@ use App\Http\Controllers\Auth\GoogleController;
 use \App\Http\Controllers\ExpenseController;
 use \App\Http\Controllers\Admin\SettingController;
 use \App\Http\Controllers\Admin\UserController;
+use \App\Http\Controllers\Admin\ReportController;
 
 Route::middleware('guest')->group(function () {
     Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('google.login');
@@ -32,6 +33,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::resource('/admin/users', UserController::class)->names('admin.users');
     Route::put('/parts/{part}', [PartController::class, 'update'])->name('parts.update');
     Route::delete('/parts/{part}', [PartController::class, 'destroy'])->name('parts.destroy');
+    Route::get('/admin/reports', [ReportController::class, 'index'])->name('admin.reports.index');
 });
 
 Route::middleware(['auth', 'verified', 'staff'])->group(function () {
