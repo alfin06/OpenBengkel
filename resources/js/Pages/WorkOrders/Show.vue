@@ -214,7 +214,7 @@ const printJob = () => window.print();
                                     autocomplete="off"
                                     @keyup.enter="handleBarcodeZap" />
                                 
-                                <div v-if="searchResults.length > 0" 
+                                <div v-if="searchResults && searchResults.length > 0"
                                     class="absolute z-[100] w-full bg-white border-2 border-blue-600 rounded-b-xl shadow-2xl mt-1 max-h-96 overflow-y-auto">
                                     <div 
                                         v-for="part in searchResults" 
@@ -352,7 +352,7 @@ const printJob = () => window.print();
                                 </tr>
                             </thead>
                             <tbody class="divide-y">
-                                <tr v-for="part in workOrder.parts" :key="part.id" class="hover:bg-green-50/20">
+                                <tr v-for="part in workOrder?.parts || []" :key="part.id" class="hover:bg-green-50/20">
                                     <td class="p-3 font-medium">
                                         {{ part.part.name }}
                                         <div class="text-[10px] text-slate-400 font-mono">{{ part.part.sku }}</div>
@@ -363,7 +363,7 @@ const printJob = () => window.print();
                                         <Button variant="ghost" size="icon" @click="deletePart(part.id)" class="h-8 w-8 text-red-400"><X class="w-4 h-4" /></Button>
                                     </td>
                                 </tr>
-                                <tr v-if="!workOrder.parts.length">
+                                <tr v-if="!workOrder?.parts || workOrder.parts.length === 0">
                                     <td colspan="4" class="p-12 text-center text-slate-400 italic">Scan atau cari sparepart di atas.</td>
                                 </tr>
                             </tbody>

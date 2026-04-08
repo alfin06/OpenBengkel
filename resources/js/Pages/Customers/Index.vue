@@ -40,9 +40,11 @@ watch(search, debounce((value) => {
 const isOpen = ref(false);
 const form = useForm({
     name: '',
-    phone: '',
-    phone_secondary: '',
+    phone_1: '',
+    phone_2: '',
+    phone_3: '', 
     address: '',
+    notes: '',
 });
 
 const submit = () => {
@@ -92,23 +94,28 @@ const getWaLink = (phone: string) => {
                                 <Input id="name" v-model="form.name" placeholder="Contoh: Budi Santoso" />
                                 <div v-if="form.errors.name" class="text-red-500 text-xs">{{ form.errors.name }}</div>
                             </div>
-                            <div class="grid gap-2">
-                                <Label for="phone">Nomor WhatsApp</Label>
-                                <Input id="phone" v-model="form.phone" placeholder="08..." />
-                                <div v-if="form.errors.phone" class="text-red-500 text-xs">{{ form.errors.phone }}</div>
-                            </div>
-                            <div class="grid gap-2">
-                                <Label for="phone_secondary">Nomor Telepon Cadangan (Opsional)</Label>
-                                <Input 
-                                    id="phone_secondary" 
-                                    v-model="form.phone_secondary" 
-                                    placeholder="08... (Nomor kedua)" 
-                                    @input="form.phone_secondary = form.phone_secondary.replace(/[^0-9]/g, '')" 
-                                />
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="space-y-1">
+                                    <Label :class="{'text-red-500': form.errors.phone_1}">No. Telp 1</Label>
+                                    <Input v-model="form.phone_1" :class="{'border-red-500': form.errors.phone_1}" />
+                                    <p v-if="form.errors.phone_1" class="text-[10px] text-red-600 font-bold uppercase">{{ form.errors.phone_1 }}</p>
+                                </div>
+
+                                <div class="space-y-1">
+                                    <Label :class="{'text-red-500': form.errors.phone_2}">No. Telp 2</Label>
+                                    <Input v-model="form.phone_2" :class="{'border-red-500': form.errors.phone_2}" />
+                                    <p v-if="form.errors.phone_2" class="text-[10px] text-red-600 font-bold uppercase">{{ form.errors.phone_2 }}</p>
+                                </div>
+
+                                <div class="space-y-1">
+                                    <Label :class="{'text-red-500': form.errors.phone_3}">No. Telp 3</Label>
+                                    <Input v-model="form.phone_3" :class="{'border-red-500': form.errors.phone_3}" />
+                                    <p v-if="form.errors.phone_3" class="text-[10px] text-red-600 font-bold uppercase">{{ form.errors.phone_3 }}</p>
+                                </div>
                             </div>
                             <div class="grid gap-2">
                                 <Label for="address">Alamat</Label>
-                                <Input id="address" v-model="form.address" placeholder="Alamat singkat" />
+                                <Input id="address" v-model="form.address" placeholder="Alamat" />
                             </div>
                             <DialogFooter>
                                 <Button type="submit" :disabled="form.processing" class="w-full">
@@ -136,7 +143,6 @@ const getWaLink = (phone: string) => {
                                     <tr>
                                         <th class="p-4 font-bold">Nama</th>
                                         <th class="p-4 font-bold">Telepon</th>
-                                        <th class="p-4 font-bold">Telepon2</th>
                                         <th class="p-4 font-bold text-center">Jumlah Kendaraan</th>
                                         <th class="p-4 font-bold text-right">&nbsp;</th>
                                     </tr>
@@ -145,19 +151,14 @@ const getWaLink = (phone: string) => {
                                     <tr v-for="customer in customers.data" :key="customer.id" class="hover:bg-blue-50/50 transition-colors">
                                         <td class="p-4 font-medium text-slate-900">{{ customer.name }}</td>
                                         <td class="p-4">
-                                            <a v-if="customer.phone" 
-                                                :href="getWaLink(customer.phone)" 
+                                            <a v-if="customer.phone_1" 
+                                                :href="getWaLink(customer.phone_1)" 
                                                 target="_blank" 
                                                 class="inline-flex items-center gap-1.5 px-2 py-1 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 rounded-md transition-colors font-medium text-sm">
                                                 <MessageCircle class="w-4 h-4 fill-current" />
-                                                {{ customer.phone }}
+                                                {{ customer.phone_1 }}
                                             </a>
                                             <span v-else class="text-slate-400 italic text-sm">Kosong</span>
-                                        </td>
-                                        <td class="p-4 text-slate-600">
-                                            <div v-if="customer.phone_secondary" class="font-mono text-[10px] text-slate-400 mt-1">
-                                                Alt: {{ customer.phone_secondary }}
-                                            </div>
                                         </td>
                                         <td class="p-4 text-center">
                                             <span class="px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold uppercase">

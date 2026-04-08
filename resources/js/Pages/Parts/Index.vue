@@ -143,7 +143,7 @@ const deletePart = () => {
         <template #header>
             <div class="flex justify-between items-center">
                 <h2 class="text-xl font-semibold text-gray-800">Inventory & Jasa</h2>
-                <Button v-if="user?.role === 'admin'" @click="showAddForm = !showAddForm" :class="showAddForm ? 'bg-slate-500' : 'bg-blue-600'">
+                <Button @click="showAddForm = !showAddForm" :class="showAddForm ? 'bg-slate-500' : 'bg-blue-600'">
                     <component :is="showAddForm ? X : Plus" class="w-4 h-4 mr-2" /> 
                     {{ showAddForm ? 'Batal' : 'Tambah Item' }}
                 </Button>
@@ -152,7 +152,7 @@ const deletePart = () => {
 
         <div class="py-12 max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             
-            <Card v-if="showAddForm && user?.role === 'admin'" class="border-blue-200 bg-blue-50/40 shadow-sm">
+            <Card class="border-blue-200 bg-blue-50/40 shadow-sm">
                 <CardHeader class="pb-2 border-b border-blue-100 mb-4">
                     <CardTitle class="text-blue-700 font-bold uppercase tracking-widest text-xs flex items-center gap-2">
                         <Plus class="w-4 h-4" /> Entry Data Barang Baru

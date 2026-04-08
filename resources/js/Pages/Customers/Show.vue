@@ -42,9 +42,11 @@ const submitVehicle = () => {
 // --- Edit Customer Logic ---
 const editCustomerForm = useForm({
     name: props.customer.name,
-    phone: props.customer.phone,
-    phone_secondary: props.customer.phone_secondary || '',
+    phone_1: props.customer.phone_1 || '',
+    phone_2: props.customer.phone_2 || '',
+    phone_3: props.customer.phone_3 || '',
     address: props.customer.address || '',
+    notes: props.customer.notes || '',
 });
 
 const updateCustomer = () => {
@@ -128,16 +130,26 @@ const deleteVehicle = (id: number) => {
                 </div>
                 <CardContent class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
                     <div>
-                        <Label class="text-[10px] uppercase font-bold text-slate-400">WhatsApp Utama</Label>
-                        <p class="font-mono font-bold text-lg text-blue-700">{{ customer.phone }}</p>
+                        <Label class="text-[10px] uppercase font-bold text-slate-400">No. Telp 1</Label>
+                        <p class="font-mono font-bold text-lg text-blue-700">{{ customer.phone_1 || '-' }}</p>
                     </div>
                     <div>
-                        <Label class="text-[10px] uppercase font-bold text-slate-400">Nomor Cadangan</Label>
-                        <p class="font-mono text-slate-600">{{ customer.phone_secondary || '-' }}</p>
+                        <Label class="text-[10px] uppercase font-bold text-slate-400">No. Telp 2</Label>
+                        <p class="font-mono font-bold text-lg text-blue-700">{{ customer.phone_2 || '-' }}</p>
+                    </div>
+                    <div>
+                        <Label class="text-[10px] uppercase font-bold text-slate-400">No. Telp 3</Label>
+                        <p class="font-mono font-bold text-lg text-blue-700">{{ customer.phone_3 || '-' }}</p>
                     </div>
                     <div>
                         <Label class="text-[10px] uppercase font-bold text-slate-400">Alamat</Label>
                         <p class="text-slate-600 truncate" :title="customer.address">{{ customer.address || '-' }}</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <Label class="text-[10px] uppercase font-bold text-amber-600">Catatan Khusus</Label>
+                        <div class="mt-1 p-3 bg-amber-50 border border-amber-100 rounded-lg text-sm text-amber-900 italic">
+                            {{ customer.notes || '' }}
+                        </div>
                     </div>
                 </CardContent>
             </Card>
@@ -224,17 +236,29 @@ const deleteVehicle = (id: number) => {
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <Label>WhatsApp Utama</Label>
-                                <Input v-model="editCustomerForm.phone" required />
+                                <Label>No. Telp 1</Label>
+                                <Input v-model="editCustomerForm.phone_1" required />
                             </div>
                             <div>
-                                <Label>Nomor Cadangan</Label>
-                                <Input v-model="editCustomerForm.phone_secondary" />
+                                <Label>No. Telp 2</Label>
+                                <Input v-model="editCustomerForm.phone_2" />
+                            </div>
+                            <div>
+                                <Label>No. Telp 3</Label>
+                                <Input v-model="editCustomerForm.phone_3" />
                             </div>
                         </div>
                         <div>
                             <Label>Alamat</Label>
                             <Input v-model="editCustomerForm.address" />
+                        </div>
+                        <div>
+                            <Label>Catatan (Notes)</Label>
+                            <textarea 
+                                v-model="editCustomerForm.notes" 
+                                class="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                placeholder=""
+                            ></textarea>
                         </div>
                         <DialogFooter>
                             <Button type="submit" class="w-full bg-blue-600" :disabled="editCustomerForm.processing">Simpan Perubahan Profil</Button>

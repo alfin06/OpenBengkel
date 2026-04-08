@@ -15,12 +15,12 @@ class CustomerController extends Controller
     {
         return Inertia::render('Customers/Index', [
             'customers' => Customer::query()
-                ->withCount('vehicles') // Ensures the "Mobil" count works
+                ->withCount('vehicles')
                 ->when($request->input('search'), function ($query, $search) {
                     $query->where('name', 'like', "%{$search}%")
                         ->orWhere('phone', 'like', "%{$search}%");
                 })
-                ->orderBy('name', 'asc') // <--- THIS SORTS ALPHABETICALLY (A-Z)
+                ->orderBy('name', 'asc')
                 ->paginate(10)
                 ->withQueryString(),
             'filters' => $request->only(['search']),
@@ -41,11 +41,17 @@ class CustomerController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'required|string|unique:customers,phone',
-            'address' => 'nullable|string',
+        'name' => 'required|string|max:255',
+        'phone_1' => 'nullable|string|max:20|unique:customers,phone_1',
+        'phone_2' => 'nullable|string|max:20|unique:customers,phone_2',
+        'phone_3' => 'nullable|string|max:20|unique:customers,phone_3',
+        'address' => 'nullable|string',
+        'notes' => 'nullable|string',
+        ], [
+            'phone_1.unique' => 'Nomor ini sudah terdaftar pada pelanggan lain.',
+            'phone_2.unique' => 'Nomor ini sudah terdaftar pada pelanggan lain.',
+            'phone_3.unique' => 'Nomor ini sudah terdaftar pada pelanggan lain.',
         ]);
-
         $customer = Customer::create($validated);
 
         return redirect()->back()->with('success', 'Pelanggan berhasil ditambahkan!');
@@ -76,9 +82,11 @@ class CustomerController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'phone' => 'required|unique:customers,phone,'.$customer->id,
-            'phone_secondary' => 'nullable|string',
+            'phone_1' => 'nullable|string|max:20',
+            'phone_2' => 'nullable|string|max:20',
+            'phone_3' => 'nullable|string|max:20',
             'address' => 'nullable|string',
+            'notes' => 'nullable|string',
         ]);
         
         $customer->update($validated);

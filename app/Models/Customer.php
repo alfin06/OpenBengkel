@@ -14,10 +14,12 @@ class Customer extends Model
     use UserTracking;
 
     protected $fillable = [
-        'name',
-        'phone',
-        'phone_secondary',
-        'address',
+        'name', 
+        'phone_1', 
+        'phone_2', 
+        'phone_3', 
+        'address', 
+        'notes'
     ];
 
     /**
