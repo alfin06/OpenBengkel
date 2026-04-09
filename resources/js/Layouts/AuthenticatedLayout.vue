@@ -82,9 +82,6 @@ watch(() => page.props.flash, (flash) => {
                                 </NavLink> -->
                                 <NavLink :href="route('work-orders.quick-checkin')" :active="route().current('work-orders.quick-checkin')">
                                     <div class="flex items-center gap-2">
-                                        <span class="bg-blue-600 text-white p-1 rounded">
-                                            <Plus class="w-3 h-3" />
-                                        </span>
                                         Quick Check-in
                                     </div>
                                 </NavLink>
