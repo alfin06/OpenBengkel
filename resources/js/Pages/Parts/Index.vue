@@ -152,7 +152,7 @@ const deletePart = () => {
 
         <div class="py-12 max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             
-            <Card class="border-blue-200 bg-blue-50/40 shadow-sm">
+            <Card v-show="showAddForm" class="border-blue-200 bg-blue-50/40 shadow-sm">
                 <CardHeader class="pb-2 border-b border-blue-100 mb-4">
                     <CardTitle class="text-blue-700 font-bold uppercase tracking-widest text-xs flex items-center gap-2">
                         <Plus class="w-4 h-4" /> Entry Data Barang Baru

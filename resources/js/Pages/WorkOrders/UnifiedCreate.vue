@@ -91,7 +91,7 @@ const submit = () => {
     <Head title="Pendaftaran Servis Baru" />
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-bold text-xl uppercase tracking-widest">Pendaftaran Servis (Quick Check-In)</h2>
+            <h2 class="font-bold text-xl uppercase tracking-widest">Pendaftaran Servis</h2>
         </template>
 
         <div class="py-12 max-w-4xl mx-auto px-4 space-y-6">

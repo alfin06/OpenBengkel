@@ -30,7 +30,7 @@ const form = useForm({
     items: [], 
     discount: 0, // This is the Global/Extra discount
     payment_method: 'Cash', 
-    status: 'paid',  
+    status: 'unpaid',  
     due_date: '',    
     amount_paid: 0, 
     notes: ''
