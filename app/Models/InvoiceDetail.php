@@ -8,7 +8,7 @@ use App\Traits\UserTracking;
 class InvoiceDetail extends Model
 {
     use UserTracking;
-    protected $fillable = ['invoice_id', 'item_name', 'qty', 'price', 'subtotal'];
+    protected $fillable = ['invoice_id', 'item_name', 'type', 'qty', 'price', 'discount', 'subtotal'];
 
     public function invoice()
     {

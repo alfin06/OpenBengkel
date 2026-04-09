@@ -31,4 +31,30 @@ class Invoice extends Model
     {
         return $this->belongsTo(WorkOrder::class);
     }
+    
+    // Accessor for Parts
+    public function getPartsAttribute()
+    {
+        return $this->details->where('type', 'part')->values();
+    }
+
+    // Accessor for Services
+    public function getServicesAttribute()
+    {
+        return $this->details->where('type', 'service')->values();
+    }
+
+    // Update the calculation logic to include per-item discounts
+    public function calculateTotals()
+    {
+        $total = $this->details()->get()->sum(function ($detail) {
+            // (Price * Qty) - Discount = Subtotal
+            return ($detail->price * $detail->qty) - $detail->discount;
+        });
+
+        $this->update([
+            'total_amount' => $total,
+            'final_amount' => $total - $this->global_discount 
+        ]);
+    }
 }

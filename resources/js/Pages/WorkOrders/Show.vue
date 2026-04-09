@@ -170,6 +170,21 @@ const calculateTotal = computed(() => {
 });
 
 const printJob = () => window.print();
+
+const updatePartQty = (part: any) => {
+    // We use router.patch to send the new quantity to the server
+    router.patch(route('work-orders.parts.update-qty', part.id), {
+        qty: part.qty
+    }, {
+        preserveScroll: true, // Prevents the page from jumping to the top
+        onSuccess: () => toast.success("Jumlah diperbarui"),
+        onError: () => {
+            toast.error("Gagal memperbarui jumlah. Periksa stok!");
+            // Optional: refresh to revert UI to database value
+            router.reload();
+        }
+    });
+};
 </script>
 
 <template>
@@ -235,7 +250,7 @@ const printJob = () => window.print();
                                     </div>
                                 </div>
                             </div>
-                            <Button type="submit" class="h-16 px-8 bg-blue-600 font-bold uppercase hover:bg-blue-700">Zap</Button>
+                            <Button type="submit" class="h-16 px-8 bg-blue-600 font-bold uppercase hover:bg-blue-700">Enter</Button>
                         </form>
                     </CardContent>
                 </Card>
@@ -365,7 +380,16 @@ const printJob = () => window.print();
                                         {{ part.part.name }}
                                         <div class="text-[10px] text-slate-400 font-mono">{{ part.part.sku }}</div>
                                     </td>
-                                    <td class="p-3 text-center font-bold">{{ part.qty }}</td>
+                                    <td class="p-3 text-center">
+                                        <div class="flex justify-center items-center">
+                                            <input 
+                                                type="number" 
+                                                v-model="part.qty" 
+                                                min="1"
+                                                @change="updatePartQty(part)"
+                                                class="w-16 h-8 text-center font-bold border rounded-md focus:ring-2 focus:ring-green-500 outline-none" />
+                                        </div>
+                                    </td>
                                     <td class="p-3 text-right font-mono text-blue-700">{{ formatIDR(part.price_sold) }}</td>
                                     <td class="p-3 text-right">
                                         <Button variant="ghost" size="icon" @click="deletePart(part.id)" class="h-8 w-8 text-red-400"><X class="w-4 h-4" /></Button>

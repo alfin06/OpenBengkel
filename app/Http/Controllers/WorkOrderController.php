@@ -206,4 +206,23 @@ class WorkOrderController extends Controller
                             ->with('success', 'Check-in berhasil!');
         });
     }
+
+    public function updatePartQty(Request $request, WorkOrderPart $workOrderPart)
+    {
+        $request->validate(['qty' => 'required|integer|min:1']);
+
+        $oldQty = $workOrderPart->qty;
+        $newQty = $request->qty;
+        $diff = $newQty - $oldQty;
+
+        // Adjust stock in the main Parts table
+        $part = $workOrderPart->part;
+        if ($part) {
+            $part->decrement('stock', $diff);
+        }
+
+        $workOrderPart->update(['qty' => $newQty]);
+
+        return back();
+    }
 }

@@ -3,7 +3,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
-import { Wrench, AlertCircle, CarFront, FileText } from 'lucide-vue-next';
+import { Wrench, AlertCircle, CarFront, FileText, Receipt } from 'lucide-vue-next';
 
 const props = defineProps<{
     activeWorkOrders: any[];
@@ -57,6 +57,11 @@ const formatIDR = (val: number) => new Intl.NumberFormat('id-ID', { style: 'curr
                                         <Link :href="route('work-orders.show', wo.id)">
                                             <Button variant="outline" size="sm" class="text-blue-600 border-blue-200 hover:bg-blue-50">
                                                 <Wrench class="w-4 h-4 mr-1" /> Detail WO
+                                            </Button>
+                                        </Link>
+                                        <Link :href="route('invoices.create', wo.id)">
+                                            <Button variant="outline" size="sm" class="text-green-600 border-green-200 hover:bg-green-50 ml-2">
+                                                <FileText class="w-4 h-4 mr-1" /> Lihat Nota
                                             </Button>
                                         </Link>
                                     </td>

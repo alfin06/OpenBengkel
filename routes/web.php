@@ -48,7 +48,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
 
     // Page to prepare the bill
-    Route::get('/work-orders/{workOrder}/invoice', [WorkOrderController::class, 'createInvoice'])->name('invoices.create');
+    Route::get('/work-orders/{workOrder}/invoice', [InvoiceController::class, 'create'])->name('invoices.create');
     
     Route::get('/work-orders/quick-checkin', function () {
         return inertia('WorkOrders/UnifiedCreate');
@@ -68,6 +68,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/work-orders/{workOrder}/parts', [WorkOrderController::class, 'addPart'])->name('work-orders.parts.store');
     // Also, while you're there, add the delete route for parts
     Route::delete('/work-order-parts/{workOrderPart}', [WorkOrderController::class, 'removePart'])->name('work-orders.parts.destroy');
+    Route::patch('/work-order-parts/{workOrderPart}/qty', [WorkOrderController::class, 'updatePartQty'])->name('work-orders.parts.update-qty');
 
     // Update/Delete Work Order Items
     Route::patch('/work-order-items/{item}/update', [WorkOrderItemController::class, 'updateTask'])->name('work-order-items.update-task');
