@@ -152,9 +152,12 @@ const deleteTask = (id: number) => {
     }
 };
 
-const deletePart = (id: number) => {
-    if (confirm('Hapus sparepart ini dari daftar?')) {
-        router.delete(route('work-orders.parts.destroy', id), { preserveScroll: true });
+const removePart = (itemId: number) => {
+    if (confirm('Hapus item ini?')) {
+        // Use router.delete, NOT router.post
+        router.delete(`/work-order-parts/${itemId}`, {
+            preserveScroll: true,
+        });
     }
 };
 
@@ -392,7 +395,7 @@ const updatePartQty = (part: any) => {
                                     </td>
                                     <td class="p-3 text-right font-mono text-blue-700">{{ formatIDR(part.price_sold) }}</td>
                                     <td class="p-3 text-right">
-                                        <Button variant="ghost" size="icon" @click="deletePart(part.id)" class="h-8 w-8 text-red-400"><X class="w-4 h-4" /></Button>
+                                        <Button variant="ghost" size="icon" @click="removePart(part.id)" class="h-8 w-8 text-red-400"><X class="w-4 h-4" /></Button>
                                     </td>
                                 </tr>
                                 <tr v-if="!workOrder?.parts || workOrder.parts.length === 0">

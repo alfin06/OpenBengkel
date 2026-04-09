@@ -67,7 +67,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Add this inside your authenticated routes group
     Route::post('/work-orders/{workOrder}/parts', [WorkOrderController::class, 'addPart'])->name('work-orders.parts.store');
     // Also, while you're there, add the delete route for parts
-    Route::delete('/work-order-parts/{workOrderPart}', [WorkOrderController::class, 'removePart'])->name('work-orders.parts.destroy');
+    Route::delete('/work-order-parts/{id}', [WorkOrderController::class, 'removePart'])->name('work-orders.remove-part');
     Route::patch('/work-order-parts/{workOrderPart}/qty', [WorkOrderController::class, 'updatePartQty'])->name('work-orders.parts.update-qty');
 
     // Update/Delete Work Order Items

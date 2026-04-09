@@ -225,4 +225,11 @@ class WorkOrderController extends Controller
 
         return back();
     }
+
+    public function removePart($id)
+    {
+        DB::table('work_order_parts')->where('id', $id)->delete();
+
+        return redirect()->back()->with('success', 'Part removed.');
+    }
 }
