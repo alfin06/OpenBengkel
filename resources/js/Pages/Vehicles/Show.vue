@@ -3,7 +3,9 @@ import { Head, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
-import { Car, UserCircle, Calendar, Wrench, FileText, ArrowLeft } from 'lucide-vue-next';
+import { Input } from '@/Components/ui/input'; // Ensure this is imported
+import { Car, UserCircle, Calendar, Wrench, FileText, ArrowLeft, Search, History } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 const props = defineProps<{
     vehicle: any;
@@ -11,6 +13,42 @@ const props = defineProps<{
 
 const formatIDR = (val: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
 const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+const searchQuery = ref('');
+
+const filteredHistory = computed(() => {
+    // 1. If no search query, show all work orders
+    if (!searchQuery.value || searchQuery.value.trim() === '') {
+        return props.vehicle.work_orders || [];
+    }
+
+    const query = searchQuery.value.toLowerCase().trim();
+    
+    return (props.vehicle.work_orders || []).filter(wo => {
+        // A. Search in ID (must be exact match or start with the number)
+        const matchesId = wo.id?.toString() === query || wo.id?.toString().startsWith(query);
+
+        // B. Search in Mechanic Name
+        const matchesMechanic = wo.mechanic?.name?.toLowerCase().includes(query);
+
+        // C. Search in Complaint
+        const matchesComplaint = wo.complaint?.toLowerCase().includes(query);
+
+        // D. Search in Work Order Items (Tasks/Jasa)
+        const matchesTasks = wo.items?.some((item: any) => 
+            item.task_name?.toLowerCase().includes(query)
+        );
+
+        // E. Search in Invoice Details (Spareparts)
+        const matchesParts = wo.invoice?.details?.some((detail: any) => 
+            detail.item_name?.toLowerCase().includes(query)
+        );
+        
+        // Return TRUE only if one of these specific areas matches
+        // If none match, this 'wo' (Work Order) will be hidden from the list
+        return matchesId || matchesMechanic || matchesComplaint || matchesTasks || matchesParts;
+    });
+});
 </script>
 
 <template>
@@ -25,6 +63,7 @@ const formatDate = (dateString: string) => new Date(dateString).toLocaleDateStri
                     <div>
                         <h2 class="text-xl font-black text-slate-900 uppercase tracking-widest">{{ vehicle.plate_number }}</h2>
                         <p class="text-sm font-medium text-slate-500">{{ vehicle.brand }} {{ vehicle.model }} • {{ vehicle.year || '-' }} • {{ vehicle.color || '-' }}</p>
+                        <p class="text-sm font-medium text-slate-500">No. chasis: {{ vehicle.chassis_number || '-' }} | No. mesin: {{ vehicle.engine_number || '-' }}</p>
                     </div>
                 </div>
                 <div class="flex gap-2">
@@ -45,23 +84,34 @@ const formatDate = (dateString: string) => new Date(dateString).toLocaleDateStri
                     <div>
                         <p class="text-[10px] uppercase font-bold text-slate-400">Pemilik Kendaraan</p>
                         <p class="font-bold text-lg text-slate-800">{{ vehicle.customer?.name }}</p>
-                        <p class="text-sm text-slate-500">{{ vehicle.customer?.phone }}</p>
+                        <p class="text-sm text-slate-500">{{ vehicle.customer?.phone_1 || vehicle.customer?.phone || '-' }}</p>
                     </div>
                 </CardContent>
             </Card>
 
-            <div class="flex items-center gap-2 mb-4 mt-8">
-                <History class="w-5 h-5 text-slate-400" />
-                <h3 class="text-lg font-bold text-slate-800">Riwayat Servis</h3>
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-8">
+                <div class="flex items-center gap-2">
+                    <History class="w-5 h-5 text-slate-400" />
+                    <h3 class="text-lg font-bold text-slate-800">Riwayat Servis</h3>
+                </div>
+
+                <div class="relative w-full md:w-96">
+                    <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input 
+                        v-model="searchQuery" 
+                        placeholder="Cari mekanik, jasa, atau sparepart..." 
+                        class="pl-10 bg-white border-slate-200 shadow-sm"
+                    />
+                </div>
             </div>
 
-            <div v-if="vehicle.work_orders?.length === 0" class="text-center py-12 bg-white rounded-xl border border-slate-200 shadow-sm">
+            <div v-if="filteredHistory.length === 0" class="text-center py-12 bg-white rounded-xl border border-dashed border-slate-300">
                 <Wrench class="w-12 h-12 text-slate-200 mx-auto mb-3" />
-                <p class="text-slate-500 font-medium">Belum ada riwayat servis untuk kendaraan ini.</p>
+                <p class="text-slate-500 font-medium">Data tidak ditemukan.</p>
             </div>
 
             <div class="space-y-4">
-                <Card v-for="wo in vehicle.work_orders" :key="wo.id" class="border-slate-200 shadow-sm overflow-hidden transition-all hover:shadow-md">
+                <Card v-for="wo in filteredHistory" :key="wo.id" class="border-slate-200 shadow-sm overflow-hidden transition-all hover:shadow-md">
                     <div class="bg-slate-50 px-6 py-3 border-b flex justify-between items-center">
                         <div class="flex items-center gap-4">
                             <span class="text-sm font-bold text-slate-700 flex items-center gap-2">
@@ -90,25 +140,41 @@ const formatDate = (dateString: string) => new Date(dateString).toLocaleDateStri
                                     </div>
                                     <div>
                                         <p class="text-[10px] uppercase font-bold text-slate-400">Mekanik</p>
-                                        <p class="text-sm font-bold">{{ wo.mechanic_name || '-' }}</p>
+                                        <p class="text-sm font-bold text-blue-700">{{ wo.mechanic?.name || '-' }}</p>
+                                    </div>
+                                </div>
+
+                                <div v-if="searchQuery && (wo.items?.length || wo.invoice?.details?.length)" class="mt-2 pt-2 border-t border-dashed">
+                                    <p class="text-[9px] uppercase font-black text-blue-500 mb-1 tracking-tighter">Hasil Pencarian Detail:</p>
+                                    <div class="flex flex-wrap gap-1">
+                                        <span v-for="item in wo.items" :key="item.id" class="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-700 rounded border border-blue-100">
+                                            {{ item.task_name }}
+                                        </span>
+                                        <span v-for="detail in wo.invoice?.details" :key="detail.id" class="text-[10px] px-2 py-0.5 bg-green-50 text-green-700 rounded border border-green-100">
+                                            {{ detail.item_name }} (x{{ detail.qty }})
+                                        </span>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="flex flex-col justify-center border-l border-slate-100 pl-6">
-                                <div v-if="wo.invoice">
-                                    <p class="text-[10px] uppercase font-bold text-slate-400 mb-1">Total Tagihan</p>
-                                    <p class="text-xl font-black text-slate-900 mb-3">{{ formatIDR(wo.invoice.grand_total) }}</p>
-                                    <Link :href="route('work-orders.show', wo.id)">
-                                        <Button size="sm" class="w-full bg-slate-900 hover:bg-slate-800 text-white shadow-sm">
-                                            <Wrench class="w-4 h-4 mr-2" /> Detail WO
-                                        </Button>
-                                    </Link>
-                                    <Link :href="route('invoices.create', wo.id)">
-                                        <Button variant="outline" size="sm" class="w-full text-blue-600 border-blue-200 hover:bg-blue-50">
-                                            <FileText class="w-4 h-4 mr-2" /> Lihat Nota
-                                        </Button>
-                                    </Link>
+                                <div v-if="wo.invoice" class="space-y-3">
+                                    <div>
+                                        <p class="text-[10px] uppercase font-bold text-slate-400 mb-1">Total Tagihan</p>
+                                        <p class="text-xl font-black text-slate-900">{{ formatIDR(wo.invoice.grand_total) }}</p>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <Link :href="route('work-orders.show', wo.id)">
+                                            <Button size="sm" class="w-full bg-slate-900 hover:bg-slate-800 text-white shadow-sm gap-2">
+                                                <Wrench class="w-4 h-4" /> Detail WO
+                                            </Button>
+                                        </Link>
+                                        <Link :href="route('invoices.create', wo.id)">
+                                            <Button variant="outline" size="sm" class="w-full text-blue-600 border-blue-200 hover:bg-blue-50 gap-2">
+                                                <FileText class="w-4 h-4" /> Lihat Nota
+                                            </Button>
+                                        </Link>
+                                    </div>
                                 </div>
                                 <div v-else class="text-center text-slate-400 text-sm italic">
                                     Nota belum diterbitkan.
@@ -118,7 +184,6 @@ const formatDate = (dateString: string) => new Date(dateString).toLocaleDateStri
                     </CardContent>
                 </Card>
             </div>
-            
         </div>
     </AuthenticatedLayout>
 </template>

@@ -27,6 +27,8 @@ const vehicleForm = useForm({
     model: '',
     color: '',
     year: '',
+    chassis_number: '',
+    engine_number: ''
 });
 
 const submitVehicle = () => {
@@ -66,6 +68,8 @@ const editVehicleForm = useForm({
     model: '',
     color: '',
     year: '',
+    chassis_number: '',
+    engine_number: ''
 });
 
 const openEditVehicleModal = (vehicle: any) => {
@@ -75,6 +79,8 @@ const openEditVehicleModal = (vehicle: any) => {
     editVehicleForm.model = vehicle.model;
     editVehicleForm.color = vehicle.color;
     editVehicleForm.year = vehicle.year;
+    editVehicleForm.chassis_number = vehicle.chassis_number;
+    editVehicleForm.engine_number = vehicle.engine_number;
     isEditVehicleModalOpen.value = true; 
 };
 
@@ -179,6 +185,10 @@ const deleteVehicle = (id: number) => {
                                 <Input v-model="vehicleForm.color" placeholder="Warna" />
                                 <Input v-model="vehicleForm.year" type="number" placeholder="Tahun" />
                             </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <Input v-model="vehicleForm.chassis_number" placeholder="Nomor Chassis" />
+                                <Input v-model="vehicleForm.engine_number" placeholder="Nomor Mesin" />
+                            </div>
                             <DialogFooter>
                                 <Button type="submit" class="w-full" :disabled="vehicleForm.processing">Simpan Kendaraan</Button>
                             </DialogFooter>
@@ -282,6 +292,10 @@ const deleteVehicle = (id: number) => {
                         <div class="grid grid-cols-2 gap-4">
                             <Input v-model="editVehicleForm.color" placeholder="Warna" />
                             <Input v-model="editVehicleForm.year" type="number" placeholder="Tahun" />
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <Input v-model="editVehicleForm.chassis_number" placeholder="Nomor Chassis" />
+                            <Input v-model="editVehicleForm.engine_number" placeholder="Nomor Mesin" />
                         </div>
                         <DialogFooter>
                             <Button type="submit" class="w-full bg-blue-600" :disabled="editVehicleForm.processing">Simpan Perubahan Mobil</Button>

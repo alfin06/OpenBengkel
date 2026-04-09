@@ -18,7 +18,12 @@ class CustomerController extends Controller
                 ->withCount('vehicles')
                 ->when($request->input('search'), function ($query, $search) {
                     $query->where('name', 'like', "%{$search}%")
-                        ->orWhere('phone', 'like', "%{$search}%");
+                        ->orWhere('phone_1', 'like', "%{$search}%")
+                        ->orWhere('phone_2', 'like', "%{$search}%")
+                        ->orWhere('phone_3', 'like', "%{$search}%")
+                        ->orWhereHas('vehicles', function($v) use ($search) {
+                            $v->where('plate_number', 'like', "%{$search}%");
+                        });
                 })
                 ->orderBy('name', 'asc')
                 ->paginate(10)

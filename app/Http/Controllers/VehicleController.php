@@ -37,6 +37,8 @@ class VehicleController extends Controller
             'model' => 'required|string',
             'color' => 'nullable|string',
             'year' => 'nullable|integer|min:1900|max:' . (date('Y') + 1),
+            'chassis_number' => 'nullable|string',
+            'engine_number' => 'nullable|string',
         ]);
 
         $customer->vehicles()->create($validated);
@@ -63,17 +65,18 @@ class VehicleController extends Controller
      */
     public function show(Vehicle $vehicle)
     {
-        // Load the customer, and load all work orders with their invoices, sorted by newest first
         $vehicle->load([
             'customer', 
-            'workOrders' => function ($query) {
-                $query->orderBy('created_at', 'desc')->with('invoice');
+            'workOrders' => function($q) {
+                $q->with([
+                    'mechanic', 
+                    'items',
+                    'invoice.details'
+                ])->latest();
             }
         ]);
 
-        return Inertia::render('Vehicles/Show', [
-            'vehicle' => $vehicle
-        ]);
+        return Inertia::render('Vehicles/Show', ['vehicle' => $vehicle]);
     }
 
     /**
@@ -95,6 +98,8 @@ class VehicleController extends Controller
             'model' => 'required|string',
             'color' => 'nullable|string',
             'year' => 'nullable|integer',
+            'chassis_number' => 'nullable|string',
+            'engine_number' => 'nullable|string',
         ]);
 
         $vehicle->update($validated);

@@ -29,4 +29,13 @@ class Customer extends Model
     {
         return $this->hasMany(Vehicle::class);
     }
+
+    public function getServiceCountAttribute()
+    {
+        // Sum the number of work orders across all vehicles owned by this customer
+        return $this->vehicles()->withCount('workOrders')->get()->sum('work_orders_count');
+    }
+
+    // Make sure to append it so it's included in the JSON sent to Vue
+    protected $appends = ['service_count'];
 }

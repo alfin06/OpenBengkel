@@ -20,7 +20,9 @@ class Vehicle extends Model
         'brand', 
         'model', 
         'color', 
-        'year'
+        'year',
+        'chassis_number',
+        'engine_number'
     ];
 
     /**

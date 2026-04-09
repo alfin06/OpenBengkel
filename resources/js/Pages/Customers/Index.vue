@@ -133,7 +133,7 @@ const getWaLink = (phone: string) => {
                 <Card class="shadow-sm">
                     <CardHeader class="pb-3">
                         <div class="flex items-center gap-4">
-                            <Input v-model="search" class="max-w-sm" placeholder="Cari nama atau nomor telepon..." />
+                            <Input v-model="search" class="max-w-sm" placeholder="Cari nama, nomor telepon, plat no..." />
                         </div>
                     </CardHeader>
                     <CardContent>
