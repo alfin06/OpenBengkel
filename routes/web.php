@@ -11,7 +11,7 @@ use App\Http\Controllers\WorkOrderController;
 use App\Http\Controllers\WorkOrderItemController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\AdminDashboardController;
-use App\Http\Controllers\Admin\MechanicController;
+use App\Http\Controllers\MechanicController;
 use App\Http\Controllers\PartController;
 use App\Http\Controllers\Auth\GoogleController;
 use \App\Http\Controllers\ExpenseController;
@@ -27,7 +27,6 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
-    Route::resource('/admin/mechanics', MechanicController::class)->names('admin.mechanics');
     Route::get('/admin/settings', [SettingController::class, 'edit'])->name('admin.settings.edit');
     Route::post('/admin/settings', [SettingController::class, 'update'])->name('admin.settings.update');
     Route::resource('/admin/users', UserController::class)->names('admin.users');
@@ -92,6 +91,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
     Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
     Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
+
+    Route::resource('/mechanics', MechanicController::class)->names('mechanics');
  });
 
 

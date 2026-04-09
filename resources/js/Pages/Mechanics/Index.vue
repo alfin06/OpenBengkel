@@ -5,7 +5,8 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Users, Trash2, Edit, Wrench } from 'lucide-vue-next';
+import { Users, Trash2, Edit, Wrench, FileText, Upload, X } from 'lucide-vue-next';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/Components/ui/dialog';
 import { ref } from 'vue';
 
 const props = defineProps<{
@@ -15,22 +16,46 @@ const props = defineProps<{
 const isEditing = ref(false);
 const editId = ref<number | null>(null);
 
+const isKtpModalOpen = ref(false);
+const selectedMechanic = ref<any>(null);
+
 const form = useForm({
     name: '',
     phone: '',
     is_active: true,
+    nik: ''
+});
+
+// Form for KTP upload
+const ktpForm = useForm({
+    _method: 'put',
+    ktp_file: null as File | null,
 });
 
 const submit = () => {
     if (isEditing.value && editId.value) {
-        form.put(route('admin.mechanics.update', editId.value), {
+        form.put(route('mechanics.update', editId.value), {
             onSuccess: () => cancelEdit(),
         });
     } else {
-        form.post(route('admin.mechanics.store'), {
+        form.post(route('mechanics.store'), {
             onSuccess: () => form.reset(),
         });
     }
+};
+
+const openKtpModal = (mechanic: any) => {
+    selectedMechanic.value = mechanic;
+    isKtpModalOpen.value = true;
+};
+
+const uploadKtp = () => {
+    ktpForm.post(route('mechanics.update', selectedMechanic.value.id), {
+        onSuccess: () => {
+            isKtpModalOpen.value = false;
+            ktpForm.reset();
+        },
+    });
 };
 
 const editMechanic = (mechanic: any) => {
@@ -38,29 +63,29 @@ const editMechanic = (mechanic: any) => {
     editId.value = mechanic.id;
     form.name = mechanic.name;
     form.phone = mechanic.phone || '';
-    form.is_active = mechanic.is_active; 
+    form.is_active = mechanic.is_active;
+    form.nik = mechanic.nik || '';
 };
 
 const cancelEdit = () => {
     isEditing.value = false;
     editId.value = null;
     form.reset();
-    form.clearErrors();
 };
 
 const deleteMechanic = (id: number) => {
     if (confirm('Yakin ingin menghapus mekanik ini? Data servis lamanya akan tetap aman.')) {
-        router.delete(route('admin.mechanics.destroy', id));
+        router.delete(route('mechanics.destroy', id));
     }
 };
 </script>
 
 <template>
-    <Head title="Manajemen Mekanik" />
+    <Head title="Data Mekanik" />
     <AuthenticatedLayout>
         <template #header>
             <h2 class="font-bold text-xl text-slate-800 leading-tight uppercase tracking-widest">
-                Tim Mekanik (HR)
+                Tim Mekanik
             </h2>
         </template>
 
@@ -78,28 +103,38 @@ const deleteMechanic = (id: number) => {
                         <CardContent class="pt-6">
                             <form @submit.prevent="submit" class="space-y-4">
                                 <div>
-                                    <Label class="text-xs uppercase font-bold text-slate-500">Nama Lengkap</Label>
-                                    <Input v-model="form.name" placeholder="Cth: Budi Santoso" class="mt-1" required />
+                                    <Label>Nama Lengkap</Label>
+                                    <Input v-model="form.name" required />
                                 </div>
                                 <div>
-                                    <Label class="text-xs uppercase font-bold text-slate-500">No. WhatsApp</Label>
-                                    <Input v-model="form.phone" placeholder="0812..." class="mt-1" />
+                                    <Label>No. WhatsApp</Label>
+                                    <Input v-model="form.phone" />
                                 </div>
                                 <div>
-                                    <Label class="text-xs uppercase font-bold text-slate-500">Status Karyawan</Label>
-                                    <select v-model="form.is_active" class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                        <option value="1">Aktif Bekerja</option>
-                                        <option value="0">Nonaktif</option>
+                                    <Label>NIK (16 Digit)</Label>
+                                    <Input 
+                                        id="nik" 
+                                        v-model="form.nik" 
+                                        :class="{'border-red-500 ring-red-100': form.errors.nik}"
+                                        placeholder="Masukkan 16 digit NIK" 
+                                        maxlength="16"
+                                    />
+                                    <p v-if="form.errors.nik" class="text-[11px] font-bold text-red-600 italic">
+                                        * {{ form.errors.nik }}
+                                    </p>
+                                </div>
+                                <div>
+                                    <Label>Status</Label>
+                                    <select v-model="form.is_active" class="mt-1 w-full rounded-md border border-slate-300 text-sm p-2">
+                                        <option :value="true">Aktif</option>
+                                        <option :value="false">Nonaktif</option>
                                     </select>
                                 </div>
-                                
                                 <div class="pt-2 flex gap-2">
-                                    <Button type="submit" class="w-full h-10 text-sm font-bold uppercase tracking-widest bg-blue-600 hover:bg-blue-700" :disabled="form.processing">
-                                        {{ isEditing ? 'Simpan Perubahan' : 'Tambah Mekanik' }}
+                                    <Button type="submit" class="w-full bg-blue-600 font-bold uppercase tracking-widest">
+                                        {{ isEditing ? 'Simpan' : 'Tambah' }}
                                     </Button>
-                                    <Button v-if="isEditing" type="button" variant="outline" @click="cancelEdit" class="h-10 px-3">
-                                        Batal
-                                    </Button>
+                                    <Button v-if="isEditing" type="button" variant="outline" @click="cancelEdit">Batal</Button>
                                 </div>
                             </form>
                         </CardContent>
@@ -139,6 +174,11 @@ const deleteMechanic = (id: number) => {
                                             </span>
                                         </td>
                                         <td class="p-4 text-center flex justify-center gap-1">
+                                            <Button v-if="$page.props.auth.user.role === 'admin'" variant="ghost" size="icon" 
+                                                    class="h-8 w-8 text-amber-600 hover:bg-amber-50" 
+                                                    @click="openKtpModal(mechanic)">
+                                                <FileText class="w-4 h-4" />
+                                            </Button>
                                             <Button variant="ghost" size="icon" class="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50" @click="editMechanic(mechanic)">
                                                 <Edit class="w-4 h-4" />
                                             </Button>
@@ -155,8 +195,40 @@ const deleteMechanic = (id: number) => {
                         </CardContent>
                     </Card>
                 </div>
-
             </div>
         </div>
+
+        <Dialog v-model:open="isKtpModalOpen">
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>KTP Mekanik: {{ selectedMechanic?.name }}</DialogTitle>
+                </DialogHeader>
+                
+                <div class="py-4 space-y-4">
+                    <div v-if="selectedMechanic?.ktp_path" class="border rounded-lg overflow-hidden bg-slate-100">
+                        <img :src="'/storage/' + selectedMechanic.ktp_path" class="w-full h-auto max-h-64 object-contain" />
+                        <div class="p-2 bg-white text-center">
+                            <a :href="'/storage/' + selectedMechanic.ktp_path" target="_blank" class="text-xs text-blue-600 underline">Lihat Full Size</a>
+                        </div>
+                    </div>
+                    <div v-else class="h-32 flex flex-col items-center justify-center border-2 border-dashed rounded-lg bg-slate-50 text-slate-400">
+                        <FileText class="w-8 h-8 mb-2" />
+                        <p class="text-sm italic">Belum ada foto KTP terupload</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label>Upload Foto KTP Baru (JPG/PNG)</Label>
+                        <Input type="file" accept="image/*" @input="ktpForm.ktp_file = $event.target.files[0]" />
+                    </div>
+                </div>
+
+                <DialogFooter>
+                    <Button variant="outline" @click="isKtpModalOpen = false">Batal</Button>
+                    <Button class="bg-blue-600" @click="uploadKtp" :disabled="!ktpForm.ktp_file || ktpForm.processing">
+                        {{ ktpForm.processing ? 'Mengupload...' : 'Upload Sekarang' }}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </AuthenticatedLayout>
 </template>

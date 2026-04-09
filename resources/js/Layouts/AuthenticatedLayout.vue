@@ -103,7 +103,7 @@ watch(() => page.props.flash, (flash) => {
                                         <template #content>
                                             <DropdownLink :href="route('parts.index')"> Data Stok </DropdownLink>
                                             <DropdownLink :href="route('parts.restock.page')"> Restock Barang </DropdownLink>
-                                            <DropdownLink :href="route('admin.mechanics.index')" v-if="user?.role === 'admin'">
+                                            <DropdownLink :href="route('mechanics.index')">
                                                 Manajemen Mekanik
                                             </DropdownLink>
                                         </template>
@@ -163,7 +163,6 @@ watch(() => page.props.flash, (flash) => {
                         
                         <template v-if="user?.role === 'admin'">
                             <ResponsiveNavLink :href="route('admin.dashboard')" :active="route().current('admin.dashboard')"> Dashboard </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('admin.mechanics.index')" :active="route().current('admin.mechanics.*')"> Manajemen Mekanik </ResponsiveNavLink>
                         </template>
 
                         <template v-if="user?.role === 'staff'">
@@ -178,6 +177,7 @@ watch(() => page.props.flash, (flash) => {
                             <div class="px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Manajemen Stok</div>
                             <ResponsiveNavLink :href="route('parts.index')" :active="route().current('parts.index')" class="pl-8"> Data Stok </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('parts.restock.page')" :active="route().current('parts.restock.page')" class="pl-8"> Restock Barang </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('mechanics.index')" :active="route().current('mechanics.*')"> Manajemen Mekanik </ResponsiveNavLink>
                         </div>
                     </div>
 

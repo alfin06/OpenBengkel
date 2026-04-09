@@ -12,7 +12,7 @@ class Mechanic extends Model
     use SoftDeletes;
 
     // Change status to is_active
-    protected $fillable = ['name', 'phone', 'is_active'];
+    protected $fillable = ['name', 'phone', 'is_active', 'nik', 'ktp_path'];
 
     // Ensure Laravel treats it as a true/false boolean
     protected $casts = [
