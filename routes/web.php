@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\VehicleController;
@@ -49,7 +50,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Page to prepare the bill
     Route::get('/work-orders/{workOrder}/invoice', [WorkOrderController::class, 'createInvoice'])->name('invoices.create');
     
-    // The main Check-In page (License Plate Search)
+    Route::get('/work-orders/quick-checkin', function () {
+        return inertia('WorkOrders/UnifiedCreate');
+    })->name('work-orders.quick-checkin');
+
+    Route::post('/work-orders/unified', [WorkOrderController::class, 'storeUnified'])->name('work-orders.store-unified');
     Route::get('/work-orders/check-in', [WorkOrderController::class, 'create'])->name('work-orders.create');
     // The action to save the Work Order
     Route::post('/work-orders', [WorkOrderController::class, 'store'])->name('work-orders.store');
@@ -93,6 +98,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
 
     Route::resource('/mechanics', MechanicController::class)->names('mechanics');
+
+
+    // Route for the Auto-fill search
+    Route::get('/api/vehicles/search', function (Request $request) {
+        // Clean the plate number (remove spaces) to match database format
+        $plate = strtoupper($request->query('plate'));
+        
+        // Find the vehicle and include the owner's data
+        $vehicle = \App\Models\Vehicle::with('customer')
+            ->where('plate_number', $plate)
+            ->first();
+
+        return response()->json($vehicle);
+    })->name('api.vehicles.search');
  });
 
 

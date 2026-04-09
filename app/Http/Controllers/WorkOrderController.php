@@ -2,9 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Vehicle;
-use App\Models\Customer;
-use App\Models\Mechanic;
 use App\Models\Part;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +11,9 @@ use Inertia\Response;
 
 use App\Models\WorkOrder;
 use App\Models\WorkOrderPart;
+use App\Models\Vehicle;
+use App\Models\Customer;
+use App\Models\Mechanic;
 
 class WorkOrderController extends Controller
 {
@@ -154,5 +154,56 @@ class WorkOrderController extends Controller
             'shop' => $shop,
             'totalParts' => (float) $workOrder->parts_total,
         ]);
+    }
+
+    public function storeUnified(Request $request)
+    {
+        $validated = $request->validate([
+            'plate_number' => 'required|string',
+            'customer_name' => 'required|string',
+            'phone_1' => 'nullable|digits_between:10,15',
+            'brand' => 'required|string',
+            'model' => 'required|string',
+            'odometer' => 'nullable|numeric',
+        ], [
+            'plate_number.required' => 'Nomor plat harus diisi.',
+            'customer_name.required' => 'Nama pelanggan harus diisi.',
+            'phone_1.digits_between' => 'Nomor WhatsApp harus berupa angka (10-15 digit).',
+            'brand.required' => 'Merek mobil harus diisi.',
+            'model.required' => 'Model mobil harus diisi.',
+        ]);
+
+        return DB::transaction(function () use ($request) {
+            // 1. Handle Customer (Find by phone or create)
+            $customer = Customer::updateOrCreate(
+                ['phone_1' => $request->phone_1],
+                ['name' => $request->customer_name, 'address' => $request->address]
+            );
+
+            // 2. Handle Vehicle (Find by plate or create)
+            $vehicle = Vehicle::updateOrCreate(
+                ['plate_number' => strtoupper($request->plate_number)],
+                [
+                    'customer_id' => $customer->id,
+                    'brand' => $request->brand,
+                    'model' => $request->model,
+                    'color' => $request->color,
+                    'year' => $request->year,
+                ]
+            );
+
+            // 3. Create Work Order
+            $workOrder = WorkOrder::create([
+                'vehicle_id' => $vehicle->id,
+                'driver_name' => $request->driver_name ?? $customer->name,
+                'odometer' => $request->odometer,
+                'complaints' => $request->complaints,
+                'status' => 'Pending',
+                'created_by' => auth()->id(),
+            ]);
+
+            return redirect()->route('work-orders.show', $workOrder->id)
+                            ->with('success', 'Check-in berhasil!');
+        });
     }
 }

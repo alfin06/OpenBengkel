@@ -19,7 +19,7 @@ const formatIDR = (val: number) => new Intl.NumberFormat('id-ID', { style: 'curr
         <template #header>
             <h2 class="text-xl font-bold uppercase text-slate-800 flex items-center gap-2">
                 <CarFront class="w-6 h-6" /> 
-                Antrean Bengkel
+                Dashboard
             </h2>
         </template>
 

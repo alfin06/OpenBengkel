@@ -263,6 +263,10 @@ const printJob = () => window.print();
                                     <p class="text-[10px] uppercase font-bold text-slate-400">Odometer</p>
                                     <p class="text-sm font-mono font-bold text-slate-800">{{ workOrder.odometer || '-' }} KM</p>
                                 </div>
+                                <div>
+                                    <p class="text-[10px] uppercase font-bold text-slate-400">Keluhan</p>
+                                    <p class="text-sm font-mono font-bold text-slate-800">{{ workOrder.complaints || '-' }}</p>
+                                </div>
                             </div>
 
                             <div class="p-3 bg-blue-50 rounded-lg border border-blue-100 mt-2 flex justify-between items-center">
@@ -294,6 +298,10 @@ const printJob = () => window.print();
                                 <div>
                                     <Label class="text-xs text-slate-500">KM</Label>
                                     <Input v-model="infoForm.odometer" placeholder="KM" class="h-9 text-xs font-mono" />
+                                </div>
+                                <div>
+                                    <Label class="text-xs text-slate-500">Keluhan</Label>
+                                    <Input v-model="infoForm.complaints" placeholder="Keluhan" class="h-9 text-xs" />
                                 </div>
                             </div>
                             <div class="flex gap-2 pt-2">

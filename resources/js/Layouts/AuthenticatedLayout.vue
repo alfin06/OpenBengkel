@@ -77,8 +77,16 @@ watch(() => page.props.flash, (flash) => {
                                     </NavLink>
                                 </template>
 
-                                <NavLink :href="route('work-orders.create')" :active="route().current('work-orders.create')">
+                                <!-- <NavLink :href="route('work-orders.create')" :active="route().current('work-orders.create')">
                                     Check-In Mobil
+                                </NavLink> -->
+                                <NavLink :href="route('work-orders.quick-checkin')" :active="route().current('work-orders.quick-checkin')">
+                                    <div class="flex items-center gap-2">
+                                        <span class="bg-blue-600 text-white p-1 rounded">
+                                            <Plus class="w-3 h-3" />
+                                        </span>
+                                        Quick Check-in
+                                    </div>
                                 </NavLink>
                                 <NavLink :href="route('customers.index')" :active="route().current('customers.index')">
                                     Pelanggan
@@ -104,7 +112,7 @@ watch(() => page.props.flash, (flash) => {
                                             <DropdownLink :href="route('parts.index')"> Data Stok </DropdownLink>
                                             <DropdownLink :href="route('parts.restock.page')"> Restock Barang </DropdownLink>
                                             <DropdownLink :href="route('mechanics.index')">
-                                                Manajemen Mekanik
+                                                Data Mekanik
                                             </DropdownLink>
                                         </template>
                                     </Dropdown>
@@ -177,7 +185,7 @@ watch(() => page.props.flash, (flash) => {
                             <div class="px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Manajemen Stok</div>
                             <ResponsiveNavLink :href="route('parts.index')" :active="route().current('parts.index')" class="pl-8"> Data Stok </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('parts.restock.page')" :active="route().current('parts.restock.page')" class="pl-8"> Restock Barang </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('mechanics.index')" :active="route().current('mechanics.*')"> Manajemen Mekanik </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('mechanics.index')" :active="route().current('mechanics.*')"> Data Mekanik </ResponsiveNavLink>
                         </div>
                     </div>
 
