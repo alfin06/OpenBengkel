@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Traits\UserTracking;
 
@@ -37,9 +38,11 @@ class WorkOrder extends Model
     }
 
     // These are the Parts (Oli, Filter, etc.)
-    public function parts(): HasMany 
+    public function parts()
     {
-        return $this->hasMany(WorkOrderPart::class, 'work_order_id');
+        return $this->belongsToMany(Part::class, 'work_order_parts')
+                    ->withPivot('id', 'qty', 'price_sold')
+                    ->withTimestamps();
     }
 
     protected $appends = ['parts_total'];

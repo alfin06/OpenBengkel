@@ -67,7 +67,7 @@ class WorkOrderController extends Controller
             'workOrder' => $workOrder->load([
                 'vehicle.customer', 
                 'items', 
-                'parts.part',
+                'parts',
                 'mechanic'
             ]),
             // Fetch all active mechanics to populate the dropdown
@@ -228,8 +228,18 @@ class WorkOrderController extends Controller
 
     public function removePart($id)
     {
-        DB::table('work_order_parts')->where('id', $id)->delete();
+        $workOrderPart = WorkOrderPart::find($id);
+    
+        if ($workOrderPart) {
+            // Return the stock to the inventory
+            $part = Part::find($workOrderPart->part_id);
+            if ($part) {
+                $part->increment('stock', $workOrderPart->qty);
+            }
+            
+            $workOrderPart->delete();
+        }
 
-        return redirect()->back()->with('success', 'Part removed.');
+        return redirect()->back()->with('success', 'Barang dihapus dan stok dikembalikan.');
     }
 }

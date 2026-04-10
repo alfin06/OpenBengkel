@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\WorkOrder;
 use App\Models\Invoice;
+use App\Models\Part;
 use App\Models\InvoiceDetail;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -15,27 +16,56 @@ class InvoiceController extends Controller
     // Show the billing page
     public function create(WorkOrder $workOrder)
     {
-        // Look for an existing invoice (draft or otherwise)
         $existingInvoice = Invoice::with('details')
             ->where('work_order_id', $workOrder->id)
             ->first();
 
-        // Prepare saved items for the Vue component
         $savedItems = null;
+
         if ($existingInvoice) {
             $savedItems = $existingInvoice->details->map(function($detail) {
                 return [
+                    'part_id' => $detail->part_id, // Pass this to track stock later
                     'name' => $detail->item_name,
                     'qty' => $detail->qty,
-                    'price' => $detail->price,
+                    'price' => (int)$detail->price,
                     'type' => $detail->type,
-                    'discount' => $detail->discount,
+                    'discount' => (int)$detail->discount,
                 ];
             });
+        } else {
+            // Load the parts and items (tasks)
+            $workOrder->load(['parts', 'items']);
+
+            // Map Parts: Use 'price_sold' from your pivot table
+            $parts = $workOrder->parts->map(function($p) {
+                return [
+                    'part_id' => $p->id, // Important for stock tracking
+                    'name' => $p->name,
+                    'qty' => $p->pivot->qty ?? 1,
+                    'price' => (int)($p->pivot->price_sold ?? $p->sell_price),
+                    'type' => 'part',
+                    'discount' => 0,
+                ];
+            });
+
+            // Map Tasks
+            $tasks = $workOrder->items->map(function($i) {
+                return [
+                    'part_id' => null, // Services don't have part_ids
+                    'name' => "JASA: " . $i->task_name,
+                    'qty' => 1,
+                    'price' => 0,
+                    'type' => 'service',
+                    'discount' => 0,
+                ];
+            });
+
+            $savedItems = $parts->concat($tasks);
         }
 
         return Inertia::render('Invoices/Create', [
-            'workOrder' => $workOrder->load('items', 'vehicle.customer'),
+            'workOrder' => $workOrder->load('vehicle.customer'),
             'shop' => DB::table('settings')->first(),
             'existingInvoice' => $existingInvoice,
             'savedItems' => $savedItems,
@@ -59,25 +89,35 @@ class InvoiceController extends Controller
         $grandTotal = $itemsSubtotal - ($request->discount ?? 0);
 
         return DB::transaction(function () use ($request, $partsTotal, $grandTotal) {
-            // 1. Find existing invoice for this WO (if any) or create new
             $invoice = Invoice::updateOrCreate(
                 ['work_order_id' => $request->work_order_id],
                 [
                     'grand_total'    => $grandTotal,
                     'parts_total'    => $partsTotal,
-                    'status'         => $request->status ?? 'paid', 
+                    'status'         => $request->status ?? 'unpaid', 
                     'payment_method' => $request->payment_method,
                     'due_date'       => $request->due_date,
                     'amount_paid'    => ($request->status === 'paid') ? $grandTotal : ($request->amount_paid ?? 0),
                 ]
             );
 
-            // 2. Clear old details to prevent duplicates on re-save
+            // --- STEP 1: RETURN STOCK BEFORE DELETING OLD ITEMS ---
+            // We load the parts relationship to ensure we have the latest stock numbers
+            $oldDetails = $invoice->details()->whereNotNull('part_id')->get();
+            foreach ($oldDetails as $oldItem) {
+                // Use the relationship to increment stock accurately
+                if ($oldItem->part) {
+                    $oldItem->part()->increment('stock', $oldItem->qty);
+                }
+            }
+
+            // Clear old details
             $invoice->details()->delete();
 
-            // 3. Save current items
+            // --- STEP 2: SAVE CURRENT ITEMS & DEDUCT STOCK ---
             foreach ($request->items as $item) {
                 $invoice->details()->create([
+                    'part_id'   => $item['part_id'] ?? null,
                     'item_name' => $item['name'],
                     'type'      => $item['type'],
                     'qty'       => $item['qty'],
@@ -85,13 +125,20 @@ class InvoiceController extends Controller
                     'discount'  => $item['discount'] ?? 0,
                     'subtotal'  => ($item['price'] * $item['qty']) - ($item['discount'] ?? 0),
                 ]);
+
+                // FIX: This must be INSIDE the loop to process every item
+                if (!empty($item['part_id'])) {
+                    $part = \App\Models\Part::find($item['part_id']);
+                    if ($part) {
+                        $part->decrement('stock', $item['qty']);
+                    }
+                }
             }
 
-            // 4. Update Work Order Status ONLY if not a draft
+            // 4. Update Work Order Status
             if ($request->status !== 'draft') {
                 WorkOrder::where('id', $request->work_order_id)->update(['status' => 'Selesai']);
             } else {
-                // Keep status as 'Proses' so it stays visible in the active list
                 WorkOrder::where('id', $request->work_order_id)->update(['status' => 'Proses']);
             }
 

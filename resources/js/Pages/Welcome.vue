@@ -58,9 +58,9 @@ const mapEmbedUrl = computed(() => {
             </div>
             
             <div v-if="canLogin" class="flex gap-4">
-                <Link v-if="user" :href="user.role === 'admin' ? route('admin.dashboard') : route('dashboard')" class="font-bold text-sm text-slate-800 hover:text-blue-600 transition-colors flex items-center gap-1">
+                <!-- <Link v-if="user" :href="user.role === 'admin' ? route('admin.dashboard') : route('dashboard')" class="font-bold text-sm text-slate-800 hover:text-blue-600 transition-colors flex items-center gap-1">
                     Masuk ke Dashboard <ArrowRight class="w-4 h-4" />
-                </Link>
+                </Link> -->
                 <!-- <Link v-else :href="route('login')" class="font-bold text-sm bg-slate-900 text-white px-5 py-2.5 rounded-full hover:bg-blue-600 transition-all shadow-lg hover:shadow-blue-500/30">
                     Portal Karyawan
                 </Link> -->

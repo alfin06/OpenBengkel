@@ -28,9 +28,9 @@ const servicesItems = computed(() => invoiceItems.value.filter(i => i.type === '
 const form = useForm({
     work_order_id: props.workOrder.id,
     items: [], 
-    discount: 0, // This is the Global/Extra discount
+    discount: 0,
     payment_method: 'Cash', 
-    status: 'unpaid',  
+    status: 'paid',  
     due_date: '',    
     amount_paid: 0, 
     notes: ''
@@ -226,7 +226,7 @@ watch(() => page.props.flash?.print_id, (newId) => {
                     <Card class="border-green-200">
                         <CardHeader class="bg-green-50 border-b py-3 flex justify-between items-center">
                             <CardTitle class="text-xs font-black text-green-700 uppercase flex items-center gap-2"><Package class="w-4 h-4" /> Spareparts</CardTitle>
-                            <Button v-if="form.status === 'unpaid'" variant="outline" size="sm" @click="addManualItem('part')" class="h-7 text-[10px] border-green-300 text-green-700">+ Tambah Part</Button>
+                            <Button variant="outline" size="sm" @click="addManualItem('part')" class="h-7 text-[10px] border-green-300 text-green-700">+ Tambah Part</Button>
                         </CardHeader>
                         <CardContent class="p-0">
                             <table class="w-full text-sm">
@@ -245,7 +245,7 @@ watch(() => page.props.flash?.print_id, (newId) => {
                                         <td class="p-2"><Input v-model.number="item.qty" type="number" class="h-9 text-center border-transparent" /></td>
                                         <td class="p-2"><Input v-model.number="item.price" type="number" class="h-9 text-right font-bold border-transparent" /></td>
                                         <td class="p-2"><Input v-model.number="item.discount" type="number" class="h-9 text-right text-red-600 border-transparent bg-red-50/20" /></td>
-                                        <td class="p-2 text-center"><Button v-if="form.status === 'unpaid'" variant="ghost" size="icon" @click="removeItem(item)" class="text-slate-300 hover:text-red-500"><Trash2 class="w-4 h-4" /></Button></td>
+                                        <td class="p-2 text-center"><Button variant="ghost" size="icon" @click="removeItem(item)" class="text-slate-300 hover:text-red-500"><Trash2 class="w-4 h-4" /></Button></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -255,7 +255,7 @@ watch(() => page.props.flash?.print_id, (newId) => {
                     <Card class="border-blue-200">
                         <CardHeader class="bg-blue-50 border-b py-3 flex justify-between items-center">
                             <CardTitle class="text-xs font-black text-blue-700 uppercase flex items-center gap-2"><Wrench class="w-4 h-4" /> Jasa / Service</CardTitle>
-                            <Button v-if="form.status === 'unpaid'" variant="outline" size="sm" @click="addManualItem('service')" class="h-7 text-[10px] border-blue-300 text-blue-700">+ Tambah Jasa</Button>
+                            <Button variant="outline" size="sm" @click="addManualItem('service')" class="h-7 text-[10px] border-blue-300 text-blue-700">+ Tambah Jasa</Button>
                         </CardHeader>
                         <CardContent class="p-0">
                             <table class="w-full text-sm">
@@ -272,7 +272,7 @@ watch(() => page.props.flash?.print_id, (newId) => {
                                         <td class="p-2"><Input v-model="item.name" class="h-9 border-transparent focus:border-blue-500" /></td>
                                         <td class="p-2"><Input v-model.number="item.price" type="number" class="h-9 text-right font-bold border-transparent" /></td>
                                         <td class="p-2"><Input v-model.number="item.discount" type="number" class="h-9 text-right text-red-600 border-transparent bg-red-50/20" /></td>
-                                        <td class="p-2 text-center"><Button v-if="form.status === 'unpaid'" variant="ghost" size="icon" @click="removeItem(item)" class="text-slate-300 hover:text-red-500"><Trash2 class="w-4 h-4" /></Button></td>
+                                        <td class="p-2 text-center"><Button variant="ghost" size="icon" @click="removeItem(item)" class="text-slate-300 hover:text-red-500"><Trash2 class="w-4 h-4" /></Button></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -327,7 +327,7 @@ watch(() => page.props.flash?.print_id, (newId) => {
                                     </span>
                                 </div>
                             </div>
-                            <Button v-if="form.status === 'unpaid'"
+                            <Button 
                                 @click="saveAsDraft" 
                                 variant="outline" 
                                 class="w-full h-12 border-slate-300 text-slate-600 gap-2"
@@ -335,7 +335,7 @@ watch(() => page.props.flash?.print_id, (newId) => {
                                 <Save class="w-4 h-4" /> Simpan Draft
                             </Button>
                             <Button @click="processTransaction('print')" :disabled="form.processing" variant="outline" class="w-full h-14 border-blue-600 text-blue-600 font-bold uppercase mt-4"><Receipt class="w-4 h-4" /> Cetak Nota</Button>
-                            <Button @click="processTransaction('finish')" v-if="form.status === 'unpaid'" :disabled="form.processing" class="w-full h-14 bg-green-600 hover:bg-green-700 font-bold uppercase"><CreditCard class="w-4 h-4" />Selesai</Button>
+                            <Button @click="processTransaction('finish')" :disabled="form.processing" class="w-full h-14 bg-green-600 hover:bg-green-700 font-bold uppercase"><CreditCard class="w-4 h-4" />Selesai</Button>
                         </CardContent>
                     </Card>
                 </div>

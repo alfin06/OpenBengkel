@@ -169,21 +169,25 @@ const formatIDR = (value: number) => {
 };
 
 const calculateTotal = computed(() => {
-    return props.workOrder.parts.reduce((acc: number, p: any) => acc + (p.price_sold * p.qty), 0);
+    return (props.workOrder.parts || []).reduce((acc, p) => {
+        const qty = p.pivot?.qty || 0;
+        const price = p.pivot?.price_sold || 0;
+        return acc + (price * qty);
+    }, 0);
 });
 
 const printJob = () => window.print();
 
 const updatePartQty = (part: any) => {
-    // We use router.patch to send the new quantity to the server
-    router.patch(route('work-orders.parts.update-qty', part.id), {
-        qty: part.qty
+    // 1. We must send the PIVOT ID, not the PART ID
+    // 2. We must send the PIVOT QTY, which is what the input is bound to
+    router.patch(route('work-orders.parts.update-qty', part.pivot.id), {
+        qty: part.pivot.qty
     }, {
-        preserveScroll: true, // Prevents the page from jumping to the top
+        preserveScroll: true,
         onSuccess: () => toast.success("Jumlah diperbarui"),
         onError: () => {
             toast.error("Gagal memperbarui jumlah. Periksa stok!");
-            // Optional: refresh to revert UI to database value
             router.reload();
         }
     });
@@ -380,22 +384,24 @@ const updatePartQty = (part: any) => {
                             <tbody class="divide-y">
                                 <tr v-for="part in workOrder?.parts || []" :key="part.id" class="hover:bg-green-50/20">
                                     <td class="p-3 font-medium">
-                                        {{ part.part.name }}
-                                        <div class="text-[10px] text-slate-400 font-mono">{{ part.part.sku }}</div>
+                                        {{ part?.name }}
+                                        <div class="text-[10px] text-slate-400 font-mono">{{ part?.sku }}</div>
                                     </td>
                                     <td class="p-3 text-center">
                                         <div class="flex justify-center items-center">
                                             <input 
                                                 type="number" 
-                                                v-model="part.qty" 
+                                                v-model="part.pivot.qty" 
                                                 min="1"
                                                 @change="updatePartQty(part)"
                                                 class="w-16 h-8 text-center font-bold border rounded-md focus:ring-2 focus:ring-green-500 outline-none" />
                                         </div>
                                     </td>
-                                    <td class="p-3 text-right font-mono text-blue-700">{{ formatIDR(part.price_sold) }}</td>
+                                    <td class="p-3 text-right font-mono text-blue-700">{{ formatIDR(part.pivot?.price_sold) }}</td>
                                     <td class="p-3 text-right">
-                                        <Button variant="ghost" size="icon" @click="removePart(part.id)" class="h-8 w-8 text-red-400"><X class="w-4 h-4" /></Button>
+                                        <Button variant="ghost" size="icon" @click="removePart(part.pivot.id)" class="h-8 w-8 text-red-400">
+                                            <X class="w-4 h-4" />
+                                        </Button>
                                     </td>
                                 </tr>
                                 <tr v-if="!workOrder?.parts || workOrder.parts.length === 0">
@@ -454,7 +460,7 @@ const updatePartQty = (part: any) => {
                         {{ index + 1 }}. [ ] {{ item.task_name }} (JASA)
                     </div>
                     <div v-for="(part, index) in workOrder.parts" :key="'p'+part.id" class="text-[11pt] font-bold uppercase">
-                        {{ workOrder.items.length + index + 1 }}. [ ] {{ part.part.name }} x{{ part.qty }}
+                        {{ workOrder.items.length + index + 1 }}. [ ] {{ part.name }} x{{ part.pivot.qty }}
                     </div>
                 </div>
             </div>
