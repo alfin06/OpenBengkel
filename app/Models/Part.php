@@ -24,4 +24,12 @@ class Part extends Model
     }
 
     protected $appends = ['final_price'];
+
+    public function transactions()
+    {
+        // This links to the InvoiceDetail table where part_id matches
+        return $this->hasMany(InvoiceDetail::class, 'part_id')
+                    ->with(['invoice.workOrder.vehicle.customer'])
+                    ->latest();
+    }
 }

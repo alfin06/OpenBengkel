@@ -36,11 +36,15 @@ const search = ref(props.filters?.search || '');
 
 // --- Search Logic ---
 watch(search, debounce((value) => {
-    router.get(route('parts.index'), { search: value }, { 
-        preserveState: true, 
-        preserveScroll: true,
-        replace: true 
-    });
+    router.get(route('parts.index'), 
+        { search: value }, 
+        { 
+            preserveState: true, 
+            preserveScroll: true,
+            replace: true,
+            only: ['parts', 'filters'] // Only fetch these specific props
+        }
+    );
 }, 300));
 
 // --- Forms ---
@@ -217,7 +221,11 @@ const deletePart = () => {
                             <tbody class="divide-y divide-slate-100">
                                 <tr v-for="part in parts.data" :key="part.id" class="hover:bg-blue-50/20 transition-colors">
                                     <td class="p-4">
-                                        <div class="font-bold text-slate-900">{{ part.name }}</div>
+                                        <div class="font-bold text-slate-900">
+                                            <Link :href="route('parts.show', part.id)" class="font-bold text-blue-600 hover:underline">
+                                                {{ part.name }}
+                                            </Link>
+                                        </div>
                                         <div class="text-[11px] text-slate-400 font-mono">{{ part.sku || 'N/A' }}</div>
                                     </td>
                                     <td class="p-4">

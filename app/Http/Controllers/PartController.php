@@ -6,6 +6,8 @@ use App\Models\Part;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
+use \App\Models\InvoiceDetail;
+
 class PartController extends Controller
 {
     public function index(Request $request)
@@ -107,5 +109,29 @@ class PartController extends Controller
         $part->delete(); // This now soft-deletes automatically
 
         return redirect()->back()->with('success', 'Barang berhasil dihapus dari inventaris.');
+    }
+
+    public function show(Part $part)
+    {
+        // We load the transactions where this part was sold
+        $transactions = InvoiceDetail::where('part_id', $part->id)
+            ->with(['invoice.workOrder.vehicle.customer'])
+            ->latest()
+            ->get();
+
+        return Inertia::render('Parts/Show', [
+            'part' => $part,
+            'transactions' => $transactions->map(function($t) {
+                return [
+                    'date' => $t->created_at->format('d/m/Y'),
+                    'invoice_id' => $t->invoice_id,
+                    'invoice_uuid' => $t->invoice->uuid,
+                    'customer' => $t->invoice->workOrder->vehicle->customer->name ?? 'Umum',
+                    'plate_number' => $t->invoice->workOrder->vehicle->plate_number ?? '-',
+                    'qty' => $t->qty,
+                    'price' => (int)$t->price,
+                ];
+            })
+        ]);
     }
 }

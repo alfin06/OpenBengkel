@@ -86,6 +86,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Show the scanning page
     Route::get('/parts/restock', [PartController::class, 'restockPage'])->name('parts.restock.page');
     Route::get('/parts/search', [PartController::class, 'search'])->name('parts.search');
+    Route::get('/parts/{part}', [PartController::class, 'show'])->name('parts.show');
 
     Route::put('/vehicles/{vehicle}', [VehicleController::class, 'update'])->name('vehicles.update');
     Route::delete('/vehicles/{vehicle}', [VehicleController::class, 'destroy'])->name('vehicles.destroy');
