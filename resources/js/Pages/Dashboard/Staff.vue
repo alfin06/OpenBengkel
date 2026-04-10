@@ -6,7 +6,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input'; // Make sure this is imported
 import { 
     Wrench, AlertCircle, CarFront, FileText, 
-    User, Gauge, Search, SearchX 
+    User, Gauge, Search, SearchX, ArrowRight
 } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 
@@ -160,6 +160,13 @@ const filteredWorkOrders = computed(() => {
                                     <AlertCircle class="w-8 h-8 mx-auto mb-2 opacity-20" />
                                     <p class="text-[10px] font-bold uppercase">Aman</p>
                                     <p class="text-[10px]">Tidak ada tagihan hari ini.</p>
+                                    <hr class="my-4 border-slate-100" />
+                                
+                                    <Link :href="route('receivables.index')" class="block">
+                                        <Button size="sm" variant="ghost" class="w-full text-slate-500 hover:text-blue-600 hover:bg-blue-50 text-[10px] h-8 gap-2 font-bold uppercase">
+                                            Lihat Semua Tagihan <ArrowRight class="w-3 h-3" />
+                                        </Button>
+                                    </Link>
                                 </div>
                             </div>
                         </CardContent>

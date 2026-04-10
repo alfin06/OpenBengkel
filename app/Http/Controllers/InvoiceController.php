@@ -194,13 +194,17 @@ class InvoiceController extends Controller
     // 2. Update the status when the company settles the bill
     public function settle(Request $request, Invoice $invoice)
     {
+        // Update the invoice
         $invoice->update([
             'status' => 'paid',
-            'amount_paid' => $invoice->grand_total, // Bumps the paid amount to 100%
-            'payment_method' => $request->payment_method ?? 'Transfer',
+            'amount_paid' => $invoice->grand_total, // Mark full amount as paid
+            'payment_method' => $request->payment_method,
         ]);
 
-        return redirect()->back()->with('success', 'Receivable for Invoice #' . $invoice->id . ' has been settled!');
+        // Optional: Also update the Work Order status to Selesai if it wasn't already
+        $invoice->workOrder()->update(['status' => 'Selesai']);
+
+        return redirect()->back()->with('success', 'Tagihan INV-#' . $invoice->id . ' telah dilunasi!');
     }
 
     public function showPublic(Invoice $invoice)

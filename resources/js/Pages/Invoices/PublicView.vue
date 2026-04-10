@@ -15,6 +15,14 @@ const formatIDR = (val: number) => {
     }).format(val).replace('Rp', 'Rp ');
 };
 
+const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+};
+
 const printPage = () => window.print();
 </script>
 
@@ -59,7 +67,10 @@ const printPage = () => window.print();
                         <AlertCircle v-else class="w-3 h-3" />
                         {{ invoice.status === 'paid' ? 'LUNAS' : 'BELUM LUNAS' }}
                     </span>
-                    <p class="text-[10px] text-slate-400 mt-2 uppercase tracking-tighter">Nota #{{ invoice.id }}</p>
+                    <div class="mt-2 text-right">
+                        <p class="text-[10px] text-slate-400 uppercase tracking-tighter font-bold">Nota #{{ invoice.id }}</p>
+                        <p class="text-[10px] text-slate-500 uppercase tracking-tighter">{{ formatDate(invoice.created_at) }}</p>
+                    </div>
                 </div>
             </div>
 

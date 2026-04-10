@@ -95,7 +95,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
    // View all unpaid invoices
     Route::get('/receivables', [App\Http\Controllers\InvoiceController::class, 'receivables'])->name('receivables.index');
     // Mark an invoice as paid
-    Route::put('/invoices/{invoice}/settle', [App\Http\Controllers\InvoiceController::class, 'settle'])->name('invoices.settle');
+    Route::put('/invoices/{invoice}/settle', [InvoiceController::class, 'settle'])->name('invoices.settle');
 
     // Buku Pengeluaran (Daily Expenses)
     Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
