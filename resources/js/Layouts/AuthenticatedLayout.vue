@@ -114,6 +114,9 @@ watch(() => page.props.flash, (flash) => {
                                         <template #content>
                                             <DropdownLink :href="route('parts.index')"> Data Stok </DropdownLink>
                                             <DropdownLink :href="route('parts.restock.page')"> Restock Barang </DropdownLink>
+                                            <DropdownLink :href="route('suppliers.index')">
+                                                Data Supplier
+                                            </DropdownLink>
                                             <DropdownLink :href="route('mechanics.index')">
                                                 Data Mekanik
                                             </DropdownLink>

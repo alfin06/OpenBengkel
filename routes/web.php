@@ -19,7 +19,7 @@ use \App\Http\Controllers\ExpenseController;
 use \App\Http\Controllers\Admin\SettingController;
 use \App\Http\Controllers\Admin\UserController;
 use \App\Http\Controllers\Admin\ReportController;
-
+use App\Http\Controllers\SupplierController;
 
 
 Route::get('/invoices/{invoice:uuid}', [InvoiceController::class, 'showPublic'])->name('invoices.show');
@@ -104,6 +104,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
 
     Route::resource('/mechanics', MechanicController::class)->names('mechanics');
+
+    Route::resource('suppliers', SupplierController::class);
 
 
     // Route for the Auto-fill search

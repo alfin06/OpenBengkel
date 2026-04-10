@@ -32,4 +32,11 @@ class Part extends Model
                     ->with(['invoice.workOrder.vehicle.customer'])
                     ->latest();
     }
+
+    public function suppliers()
+    {
+        return $this->belongsToMany(Supplier::class)
+                    ->withPivot('purchase_price', 'supplier_sku')
+                    ->withTimestamps();
+    }
 }
