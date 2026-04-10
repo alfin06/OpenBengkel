@@ -22,7 +22,7 @@ use \App\Http\Controllers\Admin\ReportController;
 
 
 
-Route::get('/invoices/{invoice}/view', [InvoiceController::class, 'showPublic'])->name('invoices.show');
+Route::get('/invoices/{invoice:uuid}', [InvoiceController::class, 'showPublic'])->name('invoices.show');
 
 Route::middleware('guest')->group(function () {
     Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('google.login');

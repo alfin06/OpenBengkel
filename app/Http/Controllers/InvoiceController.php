@@ -156,7 +156,7 @@ class InvoiceController extends Controller
                         "Berikut adalah rincian nota untuk kendaraan *" . $plate . "*:\n\n" .
                         "Total: *Rp " . number_format($grandTotal, 0, ',', '.') . "*\n" .
                         "Status: *" . strtoupper($invoice->status) . "*\n\n" .
-                        "Detail nota dapat dilihat pada link berikut:\n" . route('invoices.show', $invoice->id);
+                        "Detail nota dapat dilihat pada link berikut:\n" . route('invoices.show', $invoice->uuid);
 
                 $waUrl = "https://wa.me/" . $phone . "?text=" . urlencode($message);
             }

@@ -338,9 +338,26 @@ const saveAsDraft = () => {
                                     <Button variant="outline" :class="form.status === 'unpaid' ? 'bg-red-600 text-white border-red-600' : ''" @click="form.status = 'unpaid'; form.payment_method = 'Receivable'">HUTANG</Button>
                                 </div>
 
-                                <div v-if="form.status === 'unpaid'" class="space-y-3 p-3 bg-red-50 rounded-lg border border-red-100 animate-in fade-in slide-in-from-top-2">
-                                    <label class="text-[10px] font-black uppercase text-red-600">Jatuh Tempo</label>
-                                    <Input type="date" v-model="form.due_date" class="border-red-200" />
+                                <div v-if="form.status === 'unpaid'" 
+                                    class="space-y-3 p-3 bg-red-50 rounded-lg border border-red-100 animate-in fade-in slide-in-from-top-2">
+                                    
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-black uppercase text-red-600">Uang Muka / DP (Bayar Sekarang)</label>
+                                        <Input 
+                                            type="number" 
+                                            v-model.number="form.amount_paid" 
+                                            class="border-red-200 font-bold" 
+                                            placeholder="0"
+                                        />
+                                        <p class="text-[9px] text-red-400 italic">
+                                            Sisa Hutang: {{ formatIDR(grandTotal - form.amount_paid) }}
+                                        </p>
+                                    </div>
+
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-black uppercase text-red-600">Jatuh Tempo</label>
+                                        <Input type="date" v-model="form.due_date" class="border-red-200" />
+                                    </div>
                                 </div>
 
                                 <hr />

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
@@ -10,6 +10,9 @@ import { computed, ref } from 'vue';
 const props = defineProps<{
     vehicle: any;
 }>();
+
+const page = usePage();
+const isAdmin = computed(() => page.props.auth.user.role === 'admin');
 
 const formatIDR = (val: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
 const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -49,6 +52,19 @@ const filteredHistory = computed(() => {
         return matchesId || matchesMechanic || matchesComplaint || matchesTasks || matchesParts;
     });
 });
+
+/**
+ * Logic to determine where the "Lihat Nota" button takes the user
+ */
+const getInvoiceUrl = (wo: any) => {
+    if (!wo.invoice) return '#';
+    
+    // If Admin, go to the internal Creation/Edit page
+    // If Staff, go to the secure Public UUID page
+    return isAdmin.value 
+        ? route('invoices.create', wo.id) 
+        : route('invoices.show', wo.invoice.uuid);
+};
 </script>
 
 <template>
@@ -169,9 +185,12 @@ const filteredHistory = computed(() => {
                                                 <Wrench class="w-4 h-4" /> Detail WO
                                             </Button>
                                         </Link>
-                                        <Link :href="route('invoices.create', wo.id)">
+                                        
+                                        <Link :href="getInvoiceUrl(wo)">
                                             <Button variant="outline" size="sm" class="w-full text-blue-600 border-blue-200 hover:bg-blue-50 gap-2">
-                                                <FileText class="w-4 h-4" /> Lihat Nota
+                                                <FileText v-if="isAdmin" class="w-4 h-4" />
+                                                <FileText v-else class="w-4 h-4" /> 
+                                                {{ isAdmin ? 'Edit Nota' : 'Lihat Nota' }}
                                             </Button>
                                         </Link>
                                     </div>

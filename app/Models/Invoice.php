@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\UserTracking;
+use Illuminate\Support\Str;
 
 class Invoice extends Model
 {
@@ -56,5 +57,21 @@ class Invoice extends Model
             'total_amount' => $total,
             'final_amount' => $total - $this->global_discount 
         ]);
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($model) {
+            if (empty($model->uuid)) {
+                $model->uuid = (string) Str::uuid();
+            }
+        });
+    }
+
+    // This tells Laravel to find invoices by the UUID column instead of ID by default
+    public function getRouteKeyName()
+    {
+        return 'uuid';
     }
 }
