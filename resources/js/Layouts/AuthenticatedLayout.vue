@@ -58,7 +58,13 @@ watch(() => page.props.flash, (flash) => {
                             <div class="flex shrink-0 items-center">
                                 <Link :href="user?.role === 'admin' ? route('admin.dashboard') : route('dashboard')">
                                     <ApplicationLogo 
-                                        :logo-url="$page.props.shop?.logo_path" 
+                                        :logo-url="
+                                            $page.props.shop?.logo_path 
+                                                ? ($page.props.shop.logo_path.startsWith('/') || $page.props.shop.logo_path.startsWith('http')
+                                                    ? $page.props.shop.logo_path 
+                                                    : '/' + $page.props.shop.logo_path)
+                                                : null
+                                        " 
                                         class="block h-9 w-auto fill-current text-blue-600" />
                                 </Link>
                             </div>

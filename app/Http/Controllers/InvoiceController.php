@@ -16,59 +16,62 @@ class InvoiceController extends Controller
     // Show the billing page
     public function create(WorkOrder $workOrder)
     {
+        // 1. Load the Work Order with its inventory parts and basic info
+        $workOrder->load(['parts', 'items', 'vehicle.customer']);
+
+        // 2. Prepare Internal Spareparts (This comes ONLY from Work Order)
+        // These will be displayed in a non-editable table on the invoice page.
+        $internalParts = $workOrder->parts->map(function($p) {
+            return [
+                'part_id' => $p->id,
+                'name'    => $p->name,
+                'qty'     => $p->pivot->qty ?? 1,
+                'price'   => (int)($p->pivot->price_sold ?? $p->sell_price),
+                'type'    => 'part',
+                'discount'=> 0,
+                'is_internal' => true, // Flag to tell Vue this is locked
+            ];
+        });
+
+        // 3. Prepare Lain-Lain (Editable items: Services, Manual Parts, etc.)
         $existingInvoice = Invoice::with('details')
             ->where('work_order_id', $workOrder->id)
             ->first();
 
-        $savedItems = null;
+        $lainLain = [];
 
         if ($existingInvoice) {
-            $savedItems = $existingInvoice->details->map(function($detail) {
+            // If draft exists, pull only items that ARE NOT linked to stock (part_id is null)
+            $lainLain = $existingInvoice->details->whereNull('part_id')->map(function($detail) {
                 return [
-                    'part_id' => $detail->part_id, // Pass this to track stock later
-                    'name' => $detail->item_name,
-                    'qty' => $detail->qty,
-                    'price' => (int)$detail->price,
-                    'type' => $detail->type,
-                    'discount' => (int)$detail->discount,
+                    'name'    => $detail->item_name,
+                    'qty'     => $detail->qty,
+                    'price'   => (int)$detail->price,
+                    'type'    => $detail->type,
+                    'discount'=> (int)$detail->discount,
+                    'is_internal' => false,
                 ];
             });
         } else {
-            // Load the parts and items (tasks)
-            $workOrder->load(['parts', 'items']);
-
-            // Map Parts: Use 'price_sold' from your pivot table
-            $parts = $workOrder->parts->map(function($p) {
+            // Default: Initialize Lain-Lain with tasks (Jasa) from the Work Order
+            $lainLain = $workOrder->items->map(function($i) {
                 return [
-                    'part_id' => $p->id, // Important for stock tracking
-                    'name' => $p->name,
-                    'qty' => $p->pivot->qty ?? 1,
-                    'price' => (int)($p->pivot->price_sold ?? $p->sell_price),
-                    'type' => 'part',
-                    'discount' => 0,
+                    'name'    => "JASA: " . $i->task_name,
+                    'qty'     => 1,
+                    'price'   => 0,
+                    'type'    => 'service',
+                    'discount'=> 0,
+                    'is_internal' => false,
                 ];
             });
-
-            // Map Tasks
-            $tasks = $workOrder->items->map(function($i) {
-                return [
-                    'part_id' => null, // Services don't have part_ids
-                    'name' => "JASA: " . $i->task_name,
-                    'qty' => 1,
-                    'price' => 0,
-                    'type' => 'service',
-                    'discount' => 0,
-                ];
-            });
-
-            $savedItems = $parts->concat($tasks);
         }
 
         return Inertia::render('Invoices/Create', [
-            'workOrder' => $workOrder->load('vehicle.customer'),
-            'shop' => DB::table('settings')->first(),
+            'workOrder'       => $workOrder,
+            'shop'            => DB::table('settings')->first(),
             'existingInvoice' => $existingInvoice,
-            'savedItems' => $savedItems,
+            'internalParts'   => $internalParts ?? [],
+            'initialLainLain' => $lainLain ?? [],
         ]);
     }
 

@@ -106,8 +106,7 @@ class WorkOrderController extends Controller
             return back()->with('error', 'Barang tidak ditemukan!');
         }
 
-        $workOrder->parts()->create([
-            'part_id' => $part->id,
+        $workOrder->parts()->attach($part->id, [
             'qty' => 1,
             'price_sold' => $part->sell_price,
             'cost_at_sale' => $part->buy_price,
