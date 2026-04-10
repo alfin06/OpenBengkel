@@ -20,6 +20,10 @@ use \App\Http\Controllers\Admin\SettingController;
 use \App\Http\Controllers\Admin\UserController;
 use \App\Http\Controllers\Admin\ReportController;
 
+
+
+Route::get('/invoices/{invoice}/view', [InvoiceController::class, 'showPublic'])->name('invoices.show');
+
 Route::middleware('guest')->group(function () {
     Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('google.login');
     Route::get('/auth/google/callback', [GoogleController::class, 'callback']);

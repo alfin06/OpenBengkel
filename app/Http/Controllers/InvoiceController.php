@@ -18,18 +18,21 @@ class InvoiceController extends Controller
     {
         // 1. Load the Work Order with its inventory parts and basic info
         $workOrder->load(['parts', 'items', 'vehicle.customer']);
+        $existingInvoice = Invoice::with('details')->where('work_order_id', $workOrder->id)->first();
 
         // 2. Prepare Internal Spareparts (This comes ONLY from Work Order)
         // These will be displayed in a non-editable table on the invoice page.
-        $internalParts = $workOrder->parts->map(function($p) {
+        $internalParts = $workOrder->parts->map(function($p) use ($existingInvoice) {
+            $savedDetail = $existingInvoice ? $existingInvoice->details->where('part_id', $p->id)->first() : null;
+
             return [
                 'part_id' => $p->id,
-                'name'    => $p->name,
+                'name'    => $savedDetail ? $savedDetail->item_name : $p->name, // Preference check
                 'qty'     => $p->pivot->qty ?? 1,
-                'price'   => (int)($p->pivot->price_sold ?? $p->sell_price),
+                'price'   => (int)($savedDetail ? $savedDetail->price : ($p->pivot->price_sold ?? $p->sell_price)),
                 'type'    => 'part',
-                'discount'=> 0,
-                'is_internal' => true, // Flag to tell Vue this is locked
+                'discount'=> (int)($savedDetail ? $savedDetail->discount : 0),
+                'is_internal' => true,
             ];
         });
 
@@ -97,7 +100,7 @@ class InvoiceController extends Controller
                 [
                     'grand_total'    => $grandTotal,
                     'parts_total'    => $partsTotal,
-                    'status'         => $request->status ?? 'unpaid', 
+                    'status'         => $request->status,
                     'payment_method' => $request->payment_method,
                     'due_date'       => $request->due_date,
                     'amount_paid'    => ($request->status === 'paid') ? $grandTotal : ($request->amount_paid ?? 0),
@@ -105,10 +108,8 @@ class InvoiceController extends Controller
             );
 
             // --- STEP 1: RETURN STOCK BEFORE DELETING OLD ITEMS ---
-            // We load the parts relationship to ensure we have the latest stock numbers
             $oldDetails = $invoice->details()->whereNotNull('part_id')->get();
             foreach ($oldDetails as $oldItem) {
-                // Use the relationship to increment stock accurately
                 if ($oldItem->part) {
                     $oldItem->part()->increment('stock', $oldItem->qty);
                 }
@@ -129,13 +130,35 @@ class InvoiceController extends Controller
                     'subtotal'  => ($item['price'] * $item['qty']) - ($item['discount'] ?? 0),
                 ]);
 
-                // FIX: This must be INSIDE the loop to process every item
                 if (!empty($item['part_id'])) {
                     $part = \App\Models\Part::find($item['part_id']);
                     if ($part) {
                         $part->decrement('stock', $item['qty']);
                     }
                 }
+            }
+
+            // --- STEP 3: CONSTRUCT WHATSAPP URL ---
+            $waUrl = null;
+            if ($request->action === 'whatsapp') {
+                // Reload relationships to get customer and vehicle data
+                $invoice->load('workOrder.vehicle.customer');
+                $customer = $invoice->workOrder->vehicle->customer;
+                $plate = $invoice->workOrder->vehicle->plate_number;
+                
+                // Clean phone number: Convert 08... to 628...
+                $phone = $customer->phone_1;
+                $phone = preg_replace('/^0/', '62', $phone);
+                
+                // Construct Message
+                $message = "Halo *" . ($customer->name ?? 'Pelanggan') . "*,\n\n" .
+                        "Terima kasih telah servis di *" . (config('app.name') ?? 'Bengkel Kami') . "*.\n" .
+                        "Berikut adalah rincian nota untuk kendaraan *" . $plate . "*:\n\n" .
+                        "Total: *Rp " . number_format($grandTotal, 0, ',', '.') . "*\n" .
+                        "Status: *" . strtoupper($invoice->status) . "*\n\n" .
+                        "Detail nota dapat dilihat pada link berikut:\n" . route('invoices.show', $invoice->id);
+
+                $waUrl = "https://wa.me/" . $phone . "?text=" . urlencode($message);
             }
 
             // 4. Update Work Order Status
@@ -146,7 +169,12 @@ class InvoiceController extends Controller
             }
 
             $msg = $request->status === 'draft' ? 'Draft Invoice Tersimpan!' : 'Invoice Berhasil Diselesaikan!';
-            return redirect()->back()->with('success', $msg);
+            
+            // Pass the wa_url back via flash data
+            return redirect()->back()->with([
+                'success' => $msg,
+                'wa_url' => $waUrl
+            ]);
         });
     }
 
@@ -173,5 +201,16 @@ class InvoiceController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Receivable for Invoice #' . $invoice->id . ' has been settled!');
+    }
+
+    public function showPublic(Invoice $invoice)
+    {
+        // Important: We need all these relationships for the Vue page to work!
+        $invoice->load(['details', 'workOrder.vehicle.customer']);
+        
+        return Inertia::render('Invoices/PublicView', [
+            'invoice' => $invoice,
+            'shop' => \DB::table('settings')->first(),
+        ]);
     }
 }

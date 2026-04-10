@@ -5,7 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Receipt, CreditCard, Plus, Trash2, Package, Wrench, Save, User, Car, ClipboardList, AlertCircle, ExternalLink } from 'lucide-vue-next';
+import { Receipt, CreditCard, Plus, Trash2, Package, Wrench, Save, User, Car, ClipboardList, AlertCircle, ExternalLink, MessageCircle } from 'lucide-vue-next';
 import { Toaster, toast } from 'vue-sonner';
 
 const props = defineProps<{ 
@@ -17,6 +17,7 @@ const props = defineProps<{
 }>();
 
 // local ref for the editable "Lain-lain" table only
+const editableInternalParts = ref([]);
 const lainLainItems = ref([]);
 const isSaved = ref(false);
 const page = usePage<any>();
@@ -34,7 +35,9 @@ const form = useForm({
 
 // Sync logic: separates locked stock from editable billing
 const syncData = () => {
-    // Force the initial data into an array format
+    // We use props.internalParts which is updated by Inertia after a successful POST
+    editableInternalParts.value = props.internalParts.map(p => ({ ...p }));
+    
     const rawLainLain = props.initialLainLain || [];
     lainLainItems.value = Array.isArray(rawLainLain) ? rawLainLain : Object.values(rawLainLain);
 
@@ -68,44 +71,80 @@ const formatIDR = (val: number) => new Intl.NumberFormat('id-ID', { style: 'curr
 
 // Combine both lists for calculations
 const allItemsForTotal = computed(() => {
-    const internal = Array.isArray(props.internalParts) ? props.internalParts : [];
-    const lain = Array.isArray(lainLainItems.value) ? lainLainItems.value : [];
-    return [...internal, ...lain];
+    return [...editableInternalParts.value, ...lainLainItems.value];
 });
 
 const subtotal = computed(() => {
-    // Safeguard for Internal Parts
-    const internal = Array.isArray(props.internalParts) ? props.internalParts : [];
-    const internalTotal = internal.reduce((acc, item) => {
-        return acc + (Number(item.price) * Number(item.qty));
-    }, 0);
-
-    // Safeguard for Lain-lain (The part that caused the crash)
-    const lainItems = Array.isArray(lainLainItems.value) ? lainLainItems.value : [];
-    const lainLainTotal = lainItems.reduce((acc, item) => {
+    // 1. Calculate Internal Parts (Price * Qty - Discount)
+    const internalTotal = editableInternalParts.value.reduce((acc, item) => {
         const price = Number(item.price) || 0;
         const qty = Number(item.qty) || 0;
         const discount = Number(item.discount) || 0;
         return acc + (price * qty) - discount;
     }, 0);
 
-    return internalTotal + lainLainTotal;
+    // 2. Calculate Lain-lain (Price * Qty - Discount)
+    const lainTotal = lainLainItems.value.reduce((acc, item) => {
+        const price = Number(item.price) || 0;
+        const qty = Number(item.qty) || 0;
+        const discount = Number(item.discount) || 0;
+        return acc + (price * qty) - discount;
+    }, 0);
+
+    return internalTotal + lainTotal;
 });
 
 const grandTotal = computed(() => subtotal.value - form.discount);
 
-const processTransaction = (action: 'print' | 'finish' | 'save') => {
+const processTransaction = (action: 'whatsapp' | 'finish' | 'save') => {
     if (form.processing) return;
 
-    // Merge internal parts and lain-lain before sending to server
-    form.items = [...props.internalParts, ...lainLainItems.value];
+    if (action !== 'save') {
+        // If it's a draft, we check if the staff has actually toggled a status.
+        // If it's STILL 'draft' and they haven't touched 'Lunas' or 'Hutang', 
+        // we default to 'paid'. 
+        // BUT, if they clicked 'Hutang', the status will be 'unpaid', 
+        // so this 'if' will be skipped, and 'unpaid' will be sent.
+        if (form.status === 'draft') {
+            form.status = 'paid'; 
+        }
+    }
+
+    form.items = [...editableInternalParts.value, ...lainLainItems.value];
     
-    form.post('/invoices', {
+    // We add the action to the form data so the controller sees it
+    form.transform((data) => ({
+        ...data,
+        action: action,
+    })).post('/invoices', {
         preserveScroll: true,
-        onSuccess: () => {
-            if (action === 'save') return;
-            if (action === 'print') setTimeout(() => { window.print(); }, 300);
-            if (action === 'finish') window.location.href = route('dashboard');
+        onSuccess: (page) => {
+            // Check if the server sent back a WhatsApp URL
+            syncData();
+            const flash = usePage().props.flash;
+            console.log("Flash Data:", flash);
+
+            if (flash?.wa_url) {
+                console.log("Opening WA:", flash.wa_url);
+                window.open(flash.wa_url, '_blank');
+                        
+                // 2. Delay the redirect slightly so the browser doesn't cancel the popup
+                setTimeout(() => {
+                    window.location.href = route('dashboard');
+                }, 1000);
+                return;
+            }
+
+            if (action === 'save') {
+                toast.success("Draft tersimpan");
+                return;
+            }
+            if (action === 'finish') {
+                window.location.href = route('dashboard');
+            }
+        },
+        onError: () => {
+            toast.error("Gagal menyimpan invoice. Periksa data kembali.");
         }
     });
 };
@@ -126,7 +165,7 @@ const saveAsDraft = () => {
         <table class="w-full text-xs">
             <tr v-for="item in allItemsForTotal" :key="item.name" class="border-b border-dotted border-black">
                 <td class="py-2">
-                    <div>{{ item.name }}</div>
+                    <Input v-model="item.name" class="h-9 border-slate-200 bg-white" placeholder="Nama Barang" />
                     <div class="text-[9px] opacity-70">{{ item.qty }} x {{ formatIDR(item.price) }}</div>
                 </td>
                 <td class="text-right align-bottom font-bold">
@@ -145,7 +184,7 @@ const saveAsDraft = () => {
         <AuthenticatedLayout>
             <template #header>
                 <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold uppercase">Billing Work Order #{{ workOrder.id }}</h2>
+                    <h2 class="text-xl font-bold uppercase">Invoice #{{ workOrder.id }}</h2>
                 </div>
             </template>
 
@@ -183,7 +222,7 @@ const saveAsDraft = () => {
                                     <Package class="w-4 h-4" /> Spareparts (Dari Stok Internal)
                                 </CardTitle>
                                 <a :href="route('work-orders.show', workOrder.id)" class="text-[10px] font-bold text-blue-600 flex items-center gap-1 hover:underline">
-                                    <ExternalLink class="w-3 h-3" /> Edit di Work Order
+                                    <ExternalLink class="w-3 h-3" /> Edit Qty di Work Order
                                 </a>
                             </CardHeader>
                             <CardContent class="p-0">
@@ -192,22 +231,36 @@ const saveAsDraft = () => {
                                         <tr>
                                             <th class="p-4 text-left">Nama Barang</th>
                                             <th class="p-4 text-center w-20">Qty</th>
-                                            <th class="p-4 text-right w-32">Harga</th>
+                                            <th class="p-4 text-right w-32">Harga Satuan</th>
+                                            <th class="p-4 text-right w-32">Diskon Part</th>
+                                            <th class="p-4 text-right w-32">Total</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-100">
-                                        <tr v-for="item in internalParts" :key="item.part_id" class="bg-slate-50/30">
-                                            <td class="p-4">
-                                                <div class="font-medium text-slate-700">{{ item.name }}</div>
-                                                <div class="text-[10px] text-slate-400">Harga Satuan: {{ formatIDR(item.price) }}</div>
+                                        <tr v-for="item in editableInternalParts" :key="item.part_id" class="bg-slate-50/30">
+                                            <td class="p-2">
+                                                <Input v-model="item.name" class="h-9 border-slate-200 bg-white" />
+                                                <div class="text-[9px] text-slate-400 mt-1 pl-1">
+                                                    Satuan: {{ formatIDR(item.price) }}
+                                                </div>
                                             </td>
-                                            <td class="p-4 text-center font-bold">{{ item.qty }}</td>
+                                            
+                                            <td class="p-4 text-center font-bold text-slate-500">{{ item.qty }}</td>
+                                            
+                                            <td class="p-4 text-right text-slate-500">{{ formatIDR(item.price) }}</td>
+                                            
+                                            <td class="p-2 text-right">
+                                                <Input 
+                                                    v-model.number="item.discount" 
+                                                    type="number" 
+                                                    class="h-9 text-right text-red-600 bg-red-50/50 border-red-100 focus:border-red-400" 
+                                                    placeholder="0"
+                                                />
+                                            </td>
+
                                             <td class="p-4 text-right font-mono font-bold text-slate-900">
-                                                {{ formatIDR(item.price * item.qty) }}
+                                                {{ formatIDR((item.price * item.qty) - (item.discount || 0)) }}
                                             </td>
-                                        </tr>
-                                        <tr v-if="internalParts.length === 0">
-                                            <td colspan="3" class="p-4 text-center text-xs text-slate-400 italic">Tidak ada sparepart internal.</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -297,11 +350,17 @@ const saveAsDraft = () => {
                                 </Button>
                                 
                                 <div class="grid grid-cols-1 gap-2 mt-4">
-                                    <Button @click="processTransaction('print')" class="h-14 bg-blue-600 hover:bg-blue-700 font-black uppercase tracking-widest gap-2">
-                                        <Receipt class="w-5 h-5" /> Cetak & Simpan
+                                    <Button @click="processTransaction('whatsapp')" 
+                                            :disabled="form.processing"
+                                            class="h-14 bg-green-600 hover:bg-green-700 font-black uppercase tracking-widest gap-2">
+                                        <MessageCircle class="w-5 h-5" /> Simpan & Kirim WA
                                     </Button>
-                                    <Button @click="processTransaction('finish')" variant="outline" class="h-12 border-slate-200 font-bold uppercase text-xs">
-                                        Selesai Tanpa Cetak
+
+                                    <Button @click="processTransaction('finish')" 
+                                            :disabled="form.processing" 
+                                            variant="outline" 
+                                            class="h-12 border-slate-200 font-bold uppercase text-xs">
+                                        Simpan Tanpa Kirim
                                     </Button>
                                 </div>
                             </CardContent>
