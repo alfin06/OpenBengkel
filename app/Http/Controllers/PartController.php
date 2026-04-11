@@ -113,15 +113,12 @@ class PartController extends Controller
 
     public function show(Part $part)
     {
-        // We load the transactions where this part was sold
-        $transactions = InvoiceDetail::where('part_id', $part->id)
+        // 1. SALES HISTORY (Items going OUT)
+        $salesTransactions = InvoiceDetail::where('part_id', $part->id)
             ->with(['invoice.workOrder.vehicle.customer'])
             ->latest()
-            ->get();
-
-        return Inertia::render('Parts/Show', [
-            'part' => $part,
-            'transactions' => $transactions->map(function($t) {
+            ->get()
+            ->map(function($t) {
                 return [
                     'date' => $t->created_at->format('d/m/Y'),
                     'invoice_id' => $t->invoice_id,
@@ -131,7 +128,69 @@ class PartController extends Controller
                     'qty' => $t->qty,
                     'price' => (int)$t->price,
                 ];
-            })
+            });
+
+        // 2. PURCHASE HISTORY (Items coming IN)
+        // We fetch from the new StockEntryItem model we created
+        $purchaseHistory = \App\Models\StockEntryItem::where('part_id', $part->id)
+            ->with(['stockEntry.supplier'])
+            ->latest()
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'date' => $item->stockEntry->entry_date->format('d/m/Y'),
+                    'supplier_name' => $item->stockEntry->supplier->name,
+                    'qty' => $item->qty,
+                    'price' => (int)$item->purchase_price,
+                    'reference' => $item->stockEntry->reference_number,
+                ];
+            });
+
+        // 3. ANALYTICS (Cheapest vs Last)
+        $cheapest = $purchaseHistory->sortBy('price')->first();
+
+        return Inertia::render('Parts/Show', [
+            'part' => $part,
+            'transactions' => $salesTransactions, // Sales data
+            'purchaseHistory' => $purchaseHistory, // Purchase data
+            'stats' => [
+                'cheapest_price' => $cheapest['price'] ?? 0,
+                'cheapest_supplier' => $cheapest['supplier_name'] ?? 'N/A',
+                'last_purchase_price' => $purchaseHistory->first()['price'] ?? 0,
+            ]
         ]);
+    }
+
+    public function quickStore(Request $request)
+    {
+
+        // If SKU is provided, check if it already exists
+        if ($request->sku) {
+            $existingPart = Part::where('sku', $request->sku)->first();
+            if ($existingPart) {
+                return response()->json($existingPart); // Just return the existing one!
+            }
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'sku' => 'nullable|string|unique:parts,sku',
+            'type' => 'required|in:Part,Service',
+            'buy_price' => 'nullable|numeric',
+            'sell_price' => 'nullable|numeric',
+        ], [
+            'sku.unique' => 'Kode SKU/Barcode ini sudah digunakan oleh barang lain.'
+        ]);
+
+        $part = Part::create([
+            'name' => $validated['name'],
+            'sku' => $validated['sku'],
+            'type' => $validated['type'],
+            'buy_price' => $validated['buy_price'] ?? 0,
+            'sell_price' => $validated['sell_price'] ?? 0,
+            'stock' => 0,
+        ]);
+
+        return response()->json($part);
     }
 }

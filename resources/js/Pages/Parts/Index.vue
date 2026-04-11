@@ -147,10 +147,17 @@ const deletePart = () => {
         <template #header>
             <div class="flex justify-between items-center">
                 <h2 class="text-xl font-semibold text-gray-800">Inventory & Jasa</h2>
-                <Button @click="showAddForm = !showAddForm" :class="showAddForm ? 'bg-slate-500' : 'bg-blue-600'">
-                    <component :is="showAddForm ? X : Plus" class="w-4 h-4 mr-2" /> 
-                    {{ showAddForm ? 'Batal' : 'Tambah Item' }}
-                </Button>
+                <div class="flex gap-2">
+                    <Link :href="route('stock-entries.create')">
+                        <Button variant="outline" class="border-blue-200 text-blue-600 hover:bg-blue-50">
+                            <Package class="w-4 h-4 mr-2" /> Stock-in
+                        </Button>
+                    </Link>
+                    <Button @click="showAddForm = !showAddForm" :class="showAddForm ? 'bg-slate-500' : 'bg-blue-600'">
+                        <component :is="showAddForm ? X : Plus" class="w-4 h-4 mr-2" /> 
+                        {{ showAddForm ? 'Batal' : 'Tambah Item' }}
+                    </Button>
+                </div>
             </div>
         </template>
 

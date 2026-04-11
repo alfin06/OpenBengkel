@@ -39,4 +39,9 @@ class Part extends Model
                     ->withPivot('purchase_price', 'supplier_sku')
                     ->withTimestamps();
     }
+
+    public function stockEntryItems()
+    {
+        return $this->hasMany(StockEntryItem::class);
+    }
 }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Supplier extends Model
 {
@@ -19,7 +20,8 @@ class Supplier extends Model
         'phone_sales',
         'sales_name',
         'email',
-        'npwp'
+        'npwp',
+        'notes'
     ];
 
     public function parts()
@@ -27,5 +29,10 @@ class Supplier extends Model
         return $this->belongsToMany(Part::class)
                     ->withPivot('purchase_price', 'supplier_sku')
                     ->withTimestamps();
+    }
+
+    public function stockEntries(): HasMany
+    {
+        return $this->hasMany(StockEntry::class);
     }
 }

@@ -20,6 +20,7 @@ use \App\Http\Controllers\Admin\SettingController;
 use \App\Http\Controllers\Admin\UserController;
 use \App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\StockEntryController;
 
 
 Route::get('/invoices/{invoice:uuid}', [InvoiceController::class, 'showPublic'])->name('invoices.show');
@@ -82,6 +83,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/parts', [PartController::class, 'index'])->name('parts.index');
     Route::post('/parts', [PartController::class, 'store'])->name('parts.store');
+    Route::post('/parts/quick-add', [PartController::class, 'quickStore'])->name('parts.quick-add');
     Route::post('/parts/{part}/restock', [PartController::class, 'restock'])->name('parts.restock');
     // Show the scanning page
     Route::get('/parts/restock', [PartController::class, 'restockPage'])->name('parts.restock.page');
@@ -106,6 +108,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('/mechanics', MechanicController::class)->names('mechanics');
 
     Route::resource('suppliers', SupplierController::class);
+
+    Route::resource('stock-entries', StockEntryController::class);
 
 
     // Route for the Auto-fill search

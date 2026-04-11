@@ -103,8 +103,10 @@ watch(() => page.props.flash, (flash) => {
                                         <template #trigger>
                                             <button type="button" 
                                                 class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out h-16 focus:outline-none"
-                                                :class="route().current('parts.*') ? 'border-blue-600 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'">
-                                                Pengaturan Data
+                                                :class="route().current('parts.*') || route().current('stock-entries.*') || route().current('suppliers.*') 
+                                                    ? 'border-blue-600 text-gray-900' 
+                                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'">
+                                                Stok
                                                 <svg class="ms-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                                 </svg>
@@ -113,10 +115,31 @@ watch(() => page.props.flash, (flash) => {
 
                                         <template #content>
                                             <DropdownLink :href="route('parts.index')"> Data Stok </DropdownLink>
-                                            <DropdownLink :href="route('parts.restock.page')"> Restock Barang </DropdownLink>
+                                            <!-- <DropdownLink :href="route('parts.restock.page')"> Restock Barang </DropdownLink> -->
+                                            <DropdownLink :href="route('stock-entries.create')">
+                                                Stok Masuk
+                                            </DropdownLink>
                                             <DropdownLink :href="route('suppliers.index')">
                                                 Data Supplier
                                             </DropdownLink>
+                                        </template>
+                                    </Dropdown>
+                                </div>
+
+                                <div class="inline-flex items-center">
+                                    <Dropdown align="left" width="48">
+                                        <template #trigger>
+                                            <button type="button" 
+                                                class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out h-16 focus:outline-none"
+                                                :class="route().current('mechanics.*') ? 'border-blue-600 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'">
+                                                Data Master
+                                                <svg class="ms-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        </template>
+
+                                        <template #content>
                                             <DropdownLink :href="route('mechanics.index')">
                                                 Data Mekanik
                                             </DropdownLink>
@@ -190,7 +213,7 @@ watch(() => page.props.flash, (flash) => {
                         <div class="pt-4 pb-1 border-t border-gray-100">
                             <div class="px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Manajemen Stok</div>
                             <ResponsiveNavLink :href="route('parts.index')" :active="route().current('parts.index')" class="pl-8"> Data Stok </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('parts.restock.page')" :active="route().current('parts.restock.page')" class="pl-8"> Restock Barang </ResponsiveNavLink>
+                            <!-- <ResponsiveNavLink :href="route('parts.restock.page')" :active="route().current('parts.restock.page')" class="pl-8"> Restock Barang </ResponsiveNavLink> -->
                             <ResponsiveNavLink :href="route('mechanics.index')" :active="route().current('mechanics.*')"> Data Mekanik </ResponsiveNavLink>
                         </div>
                     </div>

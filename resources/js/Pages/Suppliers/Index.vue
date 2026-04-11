@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { useForm, Head, router } from '@inertiajs/vue3';
+import { useForm, Head, router, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -44,6 +44,7 @@ const form = useForm({
     sales_name: '',
     email: '',
     npwp: '',
+    notes: '',
 });
 
 const openCreate = () => {
@@ -63,6 +64,7 @@ const openEdit = (s: any) => {
     form.sales_name = s.sales_name;
     form.email = s.email;
     form.npwp = s.npwp;
+    form.notes = s.notes;
     showModal.value = true;
 };
 
@@ -113,17 +115,24 @@ const deleteSupplier = () => {
                     class="pl-10 h-11 bg-white shadow-sm rounded-xl border-slate-200" 
                 />
             </div>
-            <div v-if="suppliers.length === 0 && search !== ''" class="py-20 text-center bg-white rounded-2xl border border-dashed border-slate-200">
+            <div v-if="(suppliers.data?.length === 0 || suppliers.length === 0) && search !== ''" class="py-20 text-center bg-white rounded-2xl border border-dashed border-slate-200">
                 <SearchX class="w-12 h-12 mx-auto mb-4 text-slate-300 opacity-50" />
                 <p class="text-slate-500 font-bold uppercase tracking-tight">Supplier Tidak Ditemukan</p>
                 <p class="text-xs text-slate-400">Pencarian "{{ search }}" tidak membuahkan hasil.</p>
                 <Button variant="link" @click="search = ''" class="text-blue-600 text-xs mt-2">Reset Pencarian</Button>
             </div>
             <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <Card v-for="s in suppliers" :key="s.id" class="shadow-sm hover:shadow-md transition-all border-slate-200 overflow-hidden group">
+                <Card v-for="s in (suppliers.data || suppliers)" :key="s.id" class="shadow-sm hover:shadow-md transition-all border-slate-200 overflow-hidden group">
                     <CardHeader class="bg-slate-50 border-b p-4 flex flex-row justify-between items-start">
                         <div>
-                            <CardTitle class="text-lg font-black text-slate-900 uppercase tracking-tight">{{ s.name }}</CardTitle>
+                            <CardTitle class="text-lg font-black text-slate-900 uppercase tracking-tight">
+                                <Link 
+                                    v-if="s.name" 
+                                    :href="route('suppliers.show', s.id)" 
+                                    class="text-blue-600 hover:text-blue-800 transition-colors underline-offset-4 hover:underline">
+                                    {{ s.name }}
+                                </Link>
+                            </CardTitle>
                             <p class="text-[10px] text-slate-400 font-bold flex items-center gap-1 mt-1">
                                 <FileText class="w-3 h-3" /> NPWP: {{ s.npwp || '-' }}
                             </p>
@@ -173,50 +182,60 @@ const deleteSupplier = () => {
         </div>
 
         <Dialog :open="showModal" @update:open="showModal = $event">
-            <DialogContent class="max-w-2xl">
-                <DialogHeader>
+            <DialogContent class="max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+                <DialogHeader class="p-6 border-b">
                     <DialogTitle class="font-black uppercase tracking-widest text-slate-900">
                         {{ isEditing ? 'Edit Supplier' : 'Tambah Supplier Baru' }}
                     </DialogTitle>
                 </DialogHeader>
 
-                <form @submit.prevent="submit" class="space-y-4 py-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="col-span-2">
-                            <Label class="text-[10px] font-bold uppercase text-slate-400">Nama Perusahaan / Toko</Label>
-                            <Input v-model="form.name" required />
-                        </div>
-                        <div class="col-span-2">
-                            <Label class="text-[10px] font-bold uppercase text-slate-400">Alamat Lengkap</Label>
-                            <Input v-model="form.address" />
-                        </div>
-                        <div>
-                            <Label class="text-[10px] font-bold uppercase text-slate-400">Telepon Kantor</Label>
-                            <Input v-model="form.phone_office" />
-                        </div>
-                        <div>
-                            <Label class="text-[10px] font-bold uppercase text-slate-400">WhatsApp Kantor</Label>
-                            <Input v-model="form.phone_whatsapp" />
-                        </div>
-                        <div>
-                            <Label class="text-[10px] font-bold uppercase text-slate-400">Nama Sales Person</Label>
-                            <Input v-model="form.sales_name" />
-                        </div>
-                        <div>
-                            <Label class="text-[10px] font-bold uppercase text-slate-400">Nomor HP Sales</Label>
-                            <Input v-model="form.phone_sales" />
-                        </div>
-                        <div>
-                            <Label class="text-[10px] font-bold uppercase text-slate-400">Email</Label>
-                            <Input v-model="form.email" type="email" />
-                        </div>
-                        <div>
-                            <Label class="text-[10px] font-bold uppercase text-slate-400">NPWP</Label>
-                            <Input v-model="form.npwp" />
+                <form @submit.prevent="submit" class="flex flex-col flex-1 overflow-hidden">
+                    <div class="flex-1 overflow-y-auto p-6 space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="col-span-2">
+                                <Label class="text-[10px] font-bold uppercase text-slate-400">Nama Perusahaan / Toko</Label>
+                                <Input v-model="form.name" required />
+                            </div>
+                            <div class="col-span-2">
+                                <Label class="text-[10px] font-bold uppercase text-slate-400">Alamat Lengkap</Label>
+                                <Input v-model="form.address" />
+                            </div>
+                            <div>
+                                <Label class="text-[10px] font-bold uppercase text-slate-400">Telepon Kantor</Label>
+                                <Input v-model="form.phone_office" />
+                            </div>
+                            <div>
+                                <Label class="text-[10px] font-bold uppercase text-slate-400">WhatsApp Kantor</Label>
+                                <Input v-model="form.phone_whatsapp" />
+                            </div>
+                            <div>
+                                <Label class="text-[10px] font-bold uppercase text-slate-400">Nama Sales Person</Label>
+                                <Input v-model="form.sales_name" />
+                            </div>
+                            <div>
+                                <Label class="text-[10px] font-bold uppercase text-slate-400">Nomor HP Sales</Label>
+                                <Input v-model="form.phone_sales" />
+                            </div>
+                            <div>
+                                <Label class="text-[10px] font-bold uppercase text-slate-400">Email</Label>
+                                <Input v-model="form.email" type="email" />
+                            </div>
+                            <div>
+                                <Label class="text-[10px] font-bold uppercase text-slate-400">NPWP</Label>
+                                <Input v-model="form.npwp" />
+                            </div>
+                            <div class="col-span-2">
+                                <Label class="text-[10px] font-bold uppercase text-slate-400">Catatan</Label>
+                                <textarea 
+                                    v-model="form.notes" 
+                                    class="w-full mt-1 border-slate-200 rounded-md text-sm min-h-[80px] p-3 focus:ring-blue-500" 
+                                    placeholder="Contoh: Sedia filter udara lengkap, harga bisa nego, pengiriman cepat."
+                                ></textarea>
+                            </div>
                         </div>
                     </div>
 
-                    <DialogFooter class="pt-6 border-t flex justify-between">
+                    <DialogFooter class="p-6 border-t bg-slate-50/50 flex justify-between">
                         <Button v-if="isEditing" type="button" variant="ghost" @click="deleteSupplier" class="text-red-600">
                             <Trash2 class="w-4 h-4 mr-2" /> Hapus
                         </Button>

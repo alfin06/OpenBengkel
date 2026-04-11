@@ -35,6 +35,7 @@ class SupplierController extends Controller
             'sales_name'     => 'nullable|string',
             'email'          => 'nullable|email',
             'npwp'           => 'nullable|string',
+            'notes'          => 'nullable|string',
         ]);
 
         Supplier::create($valid);
@@ -52,6 +53,7 @@ class SupplierController extends Controller
             'sales_name'     => 'nullable|string',
             'email'          => 'nullable|email',
             'npwp'           => 'nullable|string',
+            'notes'          => 'nullable|string',
         ]);
 
         $supplier->update($valid);
@@ -62,5 +64,31 @@ class SupplierController extends Controller
     {
         $supplier->delete();
         return redirect()->back()->with('success', 'Supplier telah dihapus.');
+    }
+
+    public function show(Supplier $supplier)
+    {
+        $purchaseHistory = $supplier->stockEntries()
+            ->with(['items.part']) // Load the items and part names
+            ->latest()
+            ->get()
+            ->map(function ($entry) {
+                return [
+                    'id' => $entry->id,
+                    'date' => $entry->entry_date->format('d/m/Y'),
+                    'reference' => $entry->reference_number,
+                    'total_cost' => (int)$entry->total_cost,
+                    'item_count' => $entry->items->count(),
+                    'summary' => $entry->items->take(3)->map(function($i) {
+                        return $i->part->name;
+                    })->implode(', ') . ($entry->items->count() > 3 ? '...' : ''),
+                ];
+            });
+
+        return Inertia::render('Suppliers/Show', [
+            'supplier' => $supplier,
+            'purchaseHistory' => $purchaseHistory,
+            'totalSpent' => (int)$purchaseHistory->sum('total_cost'),
+        ]);
     }
 }
