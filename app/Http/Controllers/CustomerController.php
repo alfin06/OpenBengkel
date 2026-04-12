@@ -106,4 +106,17 @@ class CustomerController extends Controller
     {
         //
     }
+
+    public function search(Request $request)
+    {
+        $query = $request->input('q');
+
+        // Search by name or phone
+        $customers = Customer::where('name', 'LIKE', "%{$query}%")
+            ->orWhere('phone_1', 'LIKE', "%{$query}%")
+            ->take(5) // Keep it fast
+            ->get();
+
+        return response()->json($customers);
+    }
 }

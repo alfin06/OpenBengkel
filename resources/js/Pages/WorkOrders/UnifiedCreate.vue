@@ -6,12 +6,13 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Car, User, ClipboardList, Search } from 'lucide-vue-next';
+import { Car, User, ClipboardList, Search, CheckCircle2 } from 'lucide-vue-next';
 import axios from 'axios';
 import debounce from 'lodash/debounce';
 
 const form = useForm({
     // Vehicle Info
+    customer_id: null, // Tracks if we are using an existing customer
     plate_number: '',
     brand: '',
     model: '',
@@ -30,6 +31,9 @@ const form = useForm({
 const isExistingVehicle = ref(false);
 const isChecking = ref(false);
 
+const customerSearchResults = ref([]);
+const showCustomerDropdown = ref(false);
+
 const checkVehicle = debounce(async (plate) => {
     if (plate.length < 1) {
         resetFormFields();
@@ -37,12 +41,13 @@ const checkVehicle = debounce(async (plate) => {
         return;
     }
     
-    isChecking.value = true; // Start loading
+    isChecking.value = true;
     try {
         const response = await axios.get(route('api.vehicles.search'), { params: { plate } });
 
         if (response.data && Object.keys(response.data).length > 0) {
             const v = response.data;
+            form.customer_id = v.customer?.id || null;
             form.brand = v.brand;
             form.model = v.model;
             form.color = v.color || '';
@@ -52,18 +57,46 @@ const checkVehicle = debounce(async (plate) => {
             form.address = v.customer?.address || '';
             isExistingVehicle.value = true;
         } else {
+            // If vehicle is new, we reset fields but keep the plate
             resetFormFields();
             isExistingVehicle.value = false;
         }
     } catch (e) {
         isExistingVehicle.value = false;
     } finally {
-        isChecking.value = false; // Stop loading
+        isChecking.value = false;
     }
 }, 500);
 
-// Helper function to clear fields so the staff starts fresh
+// Function to search for existing customers if the car is new
+const searchCustomer = debounce(async (query) => {
+    // Only search if the vehicle doesn't exist (it's a new car)
+    if (isExistingVehicle.value || query.length < 3) {
+        showCustomerDropdown.value = false;
+        return;
+    }
+
+    try {
+        const response = await axios.get(route('api.customers.search'), { params: { q: query } });
+        customerSearchResults.value = response.data;
+        showCustomerDropdown.value = true;
+    } catch (e) {
+        const error = e as any;
+        console.error("Customer search failed:", error.response?.data || error.message);
+    }
+}, 300);
+
+const selectCustomer = (c) => {
+    form.customer_id = c.id;
+    form.customer_name = c.name;
+    form.phone_1 = c.phone_1;
+    form.address = c.address;
+    showCustomerDropdown.value = false;
+    customerSearchResults.value = [];
+};
+
 const resetFormFields = () => {
+    form.customer_id = null;
     form.brand = '';
     form.model = '';
     form.color = '';
@@ -74,8 +107,6 @@ const resetFormFields = () => {
 };
 
 watch(() => form.plate_number, (newVal) => {
-    // If user starts typing again, assume they might be looking for a different car
-    // and hide the success message until the search confirms it.
     if (newVal.length > 0) {
         isExistingVehicle.value = false;
     }
@@ -106,7 +137,9 @@ const submit = () => {
                             <Label>Nomor Plat</Label>
                             <Input v-model="form.plate_number" placeholder="Cth: H 1234 AB" class="text-xl font-black uppercase" required />
                             <p v-if="form.errors.plate_number" class="text-xs text-red-500 mt-1">{{ form.errors.plate_number }}</p>
-                            <p v-if="isExistingVehicle" class="text-[10px] text-blue-600 font-bold mt-1 uppercase">✨ Kendaraan terdaftar ditemukan.</p>
+                            <div v-if="isExistingVehicle" class="flex items-center gap-1 text-[10px] text-blue-600 font-bold mt-1 uppercase">
+                                <CheckCircle2 class="w-3 h-3" /> Kendaraan terdaftar ditemukan.
+                            </div>
                         </div>
                         <div>
                             <Label>Merek</Label>
@@ -114,20 +147,39 @@ const submit = () => {
                         </div>
                         <div>
                             <Label>Model / Type</Label>
-                            <Input v-model="form.model" placeholder="Innova / Vario" required />
+                            <Input v-model="form.model" placeholder="Innova / Brio" required />
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card class="border-2 border-slate-200">
+                <Card class="border-2 border-slate-200 overflow-visible">
                     <CardHeader class="bg-slate-50 border-b">
                         <CardTitle class="text-sm flex items-center gap-2"><User class="w-4 h-4" /> DATA PEMILIK</CardTitle>
                     </CardHeader>
                     <CardContent class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6">
-                        <div class="md:col-span-1">
+                        <div class="md:col-span-1 relative">
                             <Label>Nama Pelanggan</Label>
-                            <Input v-model="form.customer_name" required />
-                            <p v-if="form.errors.customer_name" class="text-xs text-red-500 mt-1">{{ form.errors.customer_name }}</p>
+                            <div class="relative">
+                                <Input 
+                                    v-model="form.customer_name" 
+                                    @input="searchCustomer(form.customer_name)"
+                                    @focus="searchCustomer(form.customer_name)"
+                                    placeholder="Ketik nama untuk cari pelanggan..."
+                                    required 
+                                />
+                                <div v-if="showCustomerDropdown && customerSearchResults.length > 0" 
+                                     class="absolute z-50 w-full bg-white border border-slate-200 shadow-2xl rounded-xl mt-1 max-h-60 overflow-y-auto">
+                                    <div v-for="c in customerSearchResults" :key="c.id" 
+                                         @click="selectCustomer(c)"
+                                         class="p-3 hover:bg-blue-50 cursor-pointer border-b border-slate-50 last:border-0 transition-colors">
+                                        <p class="font-bold text-sm text-slate-800">{{ c.name }}</p>
+                                        <p class="text-[10px] text-slate-500">{{ c.phone_1 }} • {{ c.address }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <p v-if="form.customer_id && !isExistingVehicle" class="text-[10px] text-green-600 font-bold mt-1 uppercase flex items-center gap-1">
+                                <CheckCircle2 class="w-3 h-3" /> Menggunakan data pelanggan lama
+                            </p>
                         </div>
                         <div>
                             <Label>No. WhatsApp</Label>
@@ -147,13 +199,13 @@ const submit = () => {
                                 <Input v-model="form.odometer" type="number" placeholder="0" class="font-mono font-bold" />
                             </div>
                             <div>
-                                <Label>Nama Pembawa (Jika bukan pemilik)</Label>
+                                <Label>Nama Pembawa</Label>
                                 <Input v-model="form.driver_name" placeholder="Driver / Istri / Anak" />
                             </div>
                         </div>
                         <div>
                             <Label>Keluhan / Instruksi Kerja</Label>
-                            <textarea v-model="form.complaints" class="w-full h-32 border rounded-md p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Cth: Ganti oli, cek rem bunyi decit, servis rutin..."></textarea>
+                            <textarea v-model="form.complaints" class="w-full h-32 border rounded-md p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Cth: Ganti oli, cek rem bunyi decit..."></textarea>
                         </div>
                     </CardContent>
                 </Card>

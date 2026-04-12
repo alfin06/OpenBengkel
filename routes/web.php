@@ -112,6 +112,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('stock-entries', StockEntryController::class);
 
 
+    Route::get('/api/customers/search', [CustomerController::class, 'search'])->name('api.customers.search');
+    
     // Route for the Auto-fill search
     Route::get('/api/vehicles/search', function (Request $request) {
         // Clean the plate number (remove spaces) to match database format
