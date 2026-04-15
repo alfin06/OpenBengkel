@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\WorkOrder;
 use App\Models\Invoice;
 use App\Models\Part;
+use App\Models\ActivityLog;
 use App\Models\InvoiceDetail;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -239,7 +240,20 @@ class InvoiceController extends Controller
                 }
             }
 
-            // 3. Update Statuses
+            // 3. Create the Activity Log
+            ActivityLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'reopen_invoice',
+                'loggable_id' => $invoice->id,
+                'loggable_type' => Invoice::class,
+                'description' => "Invoice #{$invoice->id} dibuka kembali oleh " . auth()->user()->name,
+                'changes' => [
+                    'previous_status' => 'Paid/Unpaid',
+                    'reopened_at' => now()->toDateTimeString(),
+                ]
+            ]);
+
+            // 4. Update Statuses
             // Set invoice to Draft so it's not counted in final reports
             $invoice->update([
                 'status' => 'Draft',
