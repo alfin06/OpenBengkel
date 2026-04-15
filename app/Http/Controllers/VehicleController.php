@@ -47,20 +47,6 @@ class VehicleController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    // public function show(WorkOrder $workOrder)
-    // {
-    //     return Inertia::render('WorkOrders/Show', [
-    //         'workOrder' => $workOrder->load([
-    //             'vehicle.customer', // Now this will work!
-    //             'items', 
-    //             'parts.part'
-    //         ])
-    //     ]);
-    // }
-
-    /**
      * Display the specified resource (Vehicle Medical Record).
      */
     public function show(Vehicle $vehicle)

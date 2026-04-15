@@ -65,7 +65,7 @@ class AdminDashboardController extends Controller
             ];
         })->sortByDesc('total_cars')->values();
 
-        // 4. ADD THESE: Operational Metrics
+        // 4. Operational Metrics
         $activeWorkOrders = WorkOrder::whereIn('status', ['Pending', 'In Progress'])->count();
         $todayCheckins = WorkOrder::whereDate('created_at', Carbon::today())->count();
         $lowStockItems = Part::where('stock', '<=', 5)->count();

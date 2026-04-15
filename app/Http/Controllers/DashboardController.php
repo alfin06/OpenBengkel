@@ -28,7 +28,6 @@ class DashboardController extends Controller
             ->whereDate('due_date', '<=', Carbon::today())
             ->get();
 
-        // Note the new folder path: 'Dashboard/Staff'
         return inertia('Dashboard/Staff', [
             'activeWorkOrders' => $activeWorkOrders,
             'receivablesDueToday' => $receivablesDueToday,

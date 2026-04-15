@@ -9,7 +9,16 @@ import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
-    title: (title) => `${title} - ${appName}`,
+    title: (title) => {
+        const el = document.getElementById('app');
+        const pageData = el?.dataset?.page ? JSON.parse(el.dataset.page) : null;
+        
+        const shopName = pageData?.props?.shop?.shop_name 
+                        || import.meta.env.VITE_APP_NAME 
+                        || 'OpenBengkel';
+
+        return title ? `${title} - ${shopName}` : shopName;
+    },
     resolve: (name) =>
         resolvePageComponent(
             `./Pages/${name}.vue`,

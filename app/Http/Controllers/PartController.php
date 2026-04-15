@@ -78,7 +78,7 @@ class PartController extends Controller
         
         return Part::where('name', 'LIKE', "%{$query}%")
             ->orWhere('sku', 'LIKE', "%{$query}%")
-            ->where('stock', '>', -100) // Allow slightly negative if you allow pre-orders
+            ->where('stock', '>', -100)
             ->limit(10)
             ->get(['id', 'name', 'sku', 'sell_price', 'stock']);
     }
@@ -106,7 +106,7 @@ class PartController extends Controller
 
     public function destroy(Part $part)
     {
-        $part->delete(); // This now soft-deletes automatically
+        $part->delete();
 
         return redirect()->back()->with('success', 'Barang berhasil dihapus dari inventaris.');
     }

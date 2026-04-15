@@ -20,7 +20,7 @@ class InvoiceController extends Controller
         $workOrder->load(['parts', 'items', 'vehicle.customer']);
         $existingInvoice = Invoice::with('details')->where('work_order_id', $workOrder->id)->first();
 
-        // 2. Prepare Internal Spareparts (This comes ONLY from Work Order)
+        // 2. Prepare Internal Spareparts
         // These will be displayed in a non-editable table on the invoice page.
         $internalParts = $workOrder->parts->map(function($p) use ($existingInvoice) {
             $savedDetail = $existingInvoice ? $existingInvoice->details->where('part_id', $p->id)->first() : null;
@@ -136,7 +136,7 @@ class InvoiceController extends Controller
                 ]);
 
                 if (!empty($item['part_id'])) {
-                    $part = \App\Models\Part::find($item['part_id']);
+                    $part = Part::find($item['part_id']);
                     if ($part) {
                         $part->decrement('stock', $item['qty']);
                     }
@@ -206,7 +206,7 @@ class InvoiceController extends Controller
             'payment_method' => $request->payment_method,
         ]);
 
-        // Optional: Also update the Work Order status to Selesai if it wasn't already
+        // Also update the Work Order status to Selesai if it wasn't already
         $invoice->workOrder()->update(['status' => 'Selesai']);
 
         return redirect()->back()->with('success', 'Tagihan INV-#' . $invoice->id . ' telah dilunasi!');
@@ -214,7 +214,6 @@ class InvoiceController extends Controller
 
     public function showPublic(Invoice $invoice)
     {
-        // Important: We need all these relationships for the Vue page to work!
         $invoice->load(['details', 'workOrder.vehicle.customer']);
         
         return Inertia::render('Invoices/PublicView', [
