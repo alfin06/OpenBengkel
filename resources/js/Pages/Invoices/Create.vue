@@ -100,6 +100,13 @@ const processTransaction = (action: 'whatsapp' | 'finish' | 'save') => {
     if (form.processing) return;
 
     if (action !== 'save') {
+        if (form.status == 'Draft') {
+            toast.error("Silakan pilih status pembayaran (LUNAS atau HUTANG) terlebih dahulu!");
+            return;
+        }
+    }
+
+    if (action !== 'save') {
         // If it's a draft, we check if the staff has actually toggled a status.
         // If it's STILL 'draft' and they haven't touched 'Lunas' or 'Hutang', 
         // we default to 'paid'. 

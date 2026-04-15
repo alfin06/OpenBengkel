@@ -5,7 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Pencil, Trash2, X, Check, Package, ScanBarcode, Printer, Play, CreditCard, Search } from 'lucide-vue-next';
+import { Pencil, Trash2, X, Check, Package, ScanBarcode, Printer, Play, CreditCard, Search, RotateCcw } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 import axios from 'axios';
 import debounce from 'lodash/debounce';

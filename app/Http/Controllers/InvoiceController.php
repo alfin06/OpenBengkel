@@ -244,9 +244,6 @@ class InvoiceController extends Controller
             // Set invoice to Draft so it's not counted in final reports
             $invoice->update([
                 'status' => 'Draft',
-                'amount_paid' => 0, // Reset payment record
-                // If you have a 'change' or 'kembalian' field, reset that too:
-                // 'change' => 0, 
             ]);
             
             // Move Work Order back to 'Proses' so your UI buttons re-appear
