@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { Wrench, ShieldCheck, Clock, MapPin, Phone, ArrowRight, CheckCircle2 } from 'lucide-vue-next';
+import { Wrench, ShieldCheck, Clock, MapPin, Phone, ArrowRight, CheckCircle2, Star, Users, Car, Tool } from 'lucide-vue-next';
 
 const props = defineProps<{
     canLogin?: boolean;
@@ -12,24 +12,18 @@ const props = defineProps<{
     };
 }>();
 
-// 1. Grab global data from Inertia
 const page = usePage();
 const shop = computed(() => (page.props.shop as any) || {});
 const user = computed(() => page.props.auth?.user);
 
-// 2. Auto-format the WhatsApp Link
 const waLink = computed(() => {
     let phone = shop.value.shop_phone || shop.value.phone || ''; 
     if (!phone) return '#';
-    
     let cleaned = phone.replace(/[^0-9]/g, '');
-    if (cleaned.startsWith('0')) {
-        cleaned = '62' + cleaned.substring(1);
-    }
+    if (cleaned.startsWith('0')) cleaned = '62' + cleaned.substring(1);
     return `https://wa.me/${cleaned}`;
 });
 
-// 3. Auto-format the Google Maps Embed URL
 const mapEmbedUrl = computed(() => {
     const address = shop.value.shop_address;
     if (!address) return null;
@@ -41,198 +35,199 @@ const mapEmbedUrl = computed(() => {
 </script>
 
 <template>
-    <Head title="Selamat Datang" />
+    <Head :title="`Servis Kendaraan Terpercaya - ${shop.shop_name || 'Bengkel Pintar'}`" />
 
-    <div class="min-h-screen bg-slate-50 font-sans selection:bg-blue-500 selection:text-white">
+    <div class="min-h-screen bg-white font-sans selection:bg-blue-600 selection:text-white">
         
-        <nav class="absolute top-0 w-full z-50 px-6 py-4 flex justify-between items-center max-w-7xl mx-auto left-0 right-0">
-            <div class="flex items-center gap-3">
-                <img v-if="shop.logo_path" :src="shop.logo_path" alt="Logo Bengkel" class="h-10 w-auto object-contain rounded" />
-                <div v-else class="bg-blue-600 p-2 rounded-lg shadow-sm border border-blue-500">
-                    <Wrench class="w-6 h-6 text-white" />
+        <nav class="fixed top-0 w-full z-[100] transition-all duration-300">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="mt-4 flex justify-between items-center bg-white/80 backdrop-blur-md border border-white/20 shadow-lg rounded-2xl px-6 py-4">
+                    <div class="flex items-center gap-3">
+                        <img v-if="shop.logo_path" :src="shop.logo_path" alt="Logo" class="h-14 w-auto object-contain" />
+                        <div v-else class="bg-blue-600 p-2 rounded-lg shadow-inner">
+                            <Car class="w-6 h-6 text-white" />
+                        </div>
+                        <span class="text-xl font-black tracking-tight text-slate-900 hidden sm:block uppercase">
+                            {{ shop.shop_name || 'Bengkel Pro' }}
+                        </span>
+                    </div>
+                    
+                    <div class="flex items-center gap-6">
+                        <a href="#services" class="hidden md:block text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Layanan</a>
+                        <a href="#contact" class="hidden md:block text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Hubungi Kami</a>
+                        <div v-if="canLogin">
+                            <Link v-if="user" :href="route('dashboard')" class="bg-blue-600 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-md">
+                                Dashboard
+                            </Link>
+                        </div>
+                    </div>
                 </div>
-                
-                <span class="text-xl font-black tracking-tight text-slate-900">
-                    {{ shop.shop_name || 'Bengkel Kami' }}
-                </span>
-            </div>
-            
-            <div v-if="canLogin" class="flex gap-4">
-                <!-- <Link v-if="user" :href="user.role === 'admin' ? route('admin.dashboard') : route('dashboard')" class="font-bold text-sm text-slate-800 hover:text-blue-600 transition-colors flex items-center gap-1">
-                    Masuk ke Dashboard <ArrowRight class="w-4 h-4" />
-                </Link> -->
-                <!-- <Link v-else :href="route('login')" class="font-bold text-sm bg-slate-900 text-white px-5 py-2.5 rounded-full hover:bg-blue-600 transition-all shadow-lg hover:shadow-blue-500/30">
-                    Portal Karyawan
-                </Link> -->
             </div>
         </nav>
 
         <main>
-            <div class="relative pt-32 pb-20 sm:pt-40 sm:pb-24 overflow-hidden">
-                <div class="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 text-center">
-                    <h1 class="text-5xl md:text-7xl font-black text-slate-900 tracking-tight mb-8">
-                        Servis Cepat, Tepat, <br class="hidden md:block" />
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">
-                            Tanpa Drama.
+            <section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10">
+                    <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-200/30 blur-[120px] rounded-full"></div>
+                    <div class="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-cyan-200/20 blur-[100px] rounded-full"></div>
+                </div>
+
+                <div class="max-w-7xl mx-auto px-6 lg:px-8 text-center">
+                    <div class="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 px-4 py-1.5 rounded-full text-blue-700 text-xs font-bold uppercase tracking-widest mb-8 animate-bounce">
+                        <Star class="w-3.5 h-3.5 fill-current" /> Bengkel Terpercaya di Semarang <Star class="w-3.5 h-3.5 fill-current" />
+                    </div>
+                    <h1 class="text-5xl lg:text-8xl font-black text-slate-900 tracking-tight leading-[1.1] mb-8">
+                        Solusi Servis <br />
+                        <span class="relative">
+                            Tanpa Ribet.
+                            <svg class="absolute -bottom-2 left-0 w-full" height="8" viewBox="0 0 100 8" preserveAspectRatio="none"><path d="M0 7C25 7 25 1 50 1C75 1 75 7 100 7" stroke="#2563EB" stroke-width="2" fill="none"/></svg>
                         </span>
                     </h1>
-                    <p class="mt-6 text-lg md:text-xl leading-8 text-slate-600 max-w-2xl mx-auto font-medium">
-                        Bengkel modern dengan transparansi harga, mekanik bersertifikat, dan riwayat servis digital. Kendaraan Anda berada di tangan yang tepat.
+                    <p class="mt-8 text-lg lg:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed font-medium">
+                        Solusi perawatan kendaraan menyeluruh mulai dari ganti oli rutin hingga perbaikan berat. Kami pastikan perjalanan Anda tetap aman dan nyaman.
                     </p>
-                    <div class="mt-10 flex items-center justify-center gap-x-6">
-                        <a href="#services" class="rounded-full bg-blue-600 px-8 py-4 text-sm font-bold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-all">
-                            Lihat Layanan Kami
+                    
+                    <div class="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <a :href="waLink" target="_blank" class="w-full sm:w-auto rounded-2xl bg-blue-600 px-10 py-5 text-base font-bold text-white shadow-xl shadow-blue-500/20 hover:bg-blue-700 hover:-translate-y-1 transition-all flex items-center justify-center gap-2">
+                            Booking Via WhatsApp <Phone class="w-5 h-5 fill-current" />
                         </a>
-                        <a :href="waLink" target="_blank" class="text-sm font-bold leading-6 text-slate-900 flex items-center gap-2 hover:text-blue-600 transition-colors">
-                            Hubungi via WhatsApp <span aria-hidden="true">→</span>
+                        <a href="#services" class="w-full sm:w-auto px-10 py-5 text-base font-bold text-slate-700 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition-all">
+                            Lihat Menu Servis
                         </a>
                     </div>
                 </div>
-                
-                <div class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
-                    <div class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#3b82f6] to-[#06b6d4] opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"></div>
-                </div>
-            </div>
+            </section>
 
-            <div v-if="stats" class="relative z-20 mx-auto max-w-7xl px-6 lg:px-8 -mt-8 sm:-mt-12">
-                <div class="mx-auto max-w-3xl bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8 sm:p-10">
-                    <dl class="grid grid-cols-1 gap-x-8 gap-y-8 text-center sm:grid-cols-3">
-                        <div class="mx-auto flex max-w-xs flex-col gap-y-2">
-                            <dt class="text-sm leading-6 text-slate-500 font-bold uppercase tracking-wider">Kendaraan Selesai</dt>
-                            <dd class="order-first text-4xl font-black tracking-tight text-blue-600">
-                                {{ stats.cars_fixed.toLocaleString('id-ID') }}+
-                            </dd>
-                        </div>
-                        <div class="mx-auto flex max-w-xs flex-col gap-y-2">
-                            <dt class="text-sm leading-6 text-slate-500 font-bold uppercase tracking-wider">Mekanik Handal</dt>
-                            <dd class="order-first text-4xl font-black tracking-tight text-blue-600">
-                                {{ stats.active_mechanics }} Orang
-                            </dd>
-                        </div>
-                        <div class="mx-auto flex max-w-xs flex-col gap-y-2">
-                            <dt class="text-sm leading-6 text-slate-500 font-bold uppercase tracking-wider">Tahun Pengalaman</dt>
-                            <dd class="order-first text-4xl font-black tracking-tight text-blue-600">
-                                {{ stats.years_active }} Tahun
-                            </dd>
-                        </div>
-                    </dl>
-                </div>
-            </div>
-
-            <div id="services" class="py-24 bg-white sm:py-32">
-                <div class="mx-auto max-w-7xl px-6 lg:px-8">
-                    <div class="mx-auto max-w-2xl text-center">
-                        <h2 class="text-base font-black uppercase tracking-widest text-blue-600">Spesialisasi Kami</h2>
-                        <p class="mt-2 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">Semua Kebutuhan Mobil Anda</p>
-                    </div>
-                    <div class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
-                        <dl class="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
-                            <div class="flex flex-col bg-slate-50 p-8 rounded-2xl border-2 border-slate-100 hover:border-blue-200 transition-colors">
-                                <dt class="flex items-center gap-x-3 text-lg font-bold leading-7 text-slate-900">
-                                    <div class="bg-blue-100 p-2 rounded-lg"><Wrench class="h-6 w-6 text-blue-600" /></div>
-                                    Servis Berkala & Tune Up
-                                </dt>
-                                <dd class="mt-4 flex flex-auto flex-col text-base leading-7 text-slate-600 font-medium">
-                                    <p class="flex-auto">Pengecekan menyeluruh, ganti oli, filter, dan kalibrasi mesin agar performa kendaraan kembali seperti baru keluar dari dealer.</p>
-                                </dd>
-                            </div>
-                            <div class="flex flex-col bg-slate-50 p-8 rounded-2xl border-2 border-slate-100 hover:border-blue-200 transition-colors">
-                                <dt class="flex items-center gap-x-3 text-lg font-bold leading-7 text-slate-900">
-                                    <div class="bg-green-100 p-2 rounded-lg"><ShieldCheck class="h-6 w-6 text-green-600" /></div>
-                                    Suku Cadang Asli
-                                </dt>
-                                <dd class="mt-4 flex flex-auto flex-col text-base leading-7 text-slate-600 font-medium">
-                                    <p class="flex-auto">Kami menggunakan sistem manajemen inventaris digital untuk memastikan semua sparepart yang dipasang 100% original dan berkualitas.</p>
-                                </dd>
-                            </div>
-                            <div class="flex flex-col bg-slate-50 p-8 rounded-2xl border-2 border-slate-100 hover:border-blue-200 transition-colors">
-                                <dt class="flex items-center gap-x-3 text-lg font-bold leading-7 text-slate-900">
-                                    <div class="bg-orange-100 p-2 rounded-lg"><Clock class="h-6 w-6 text-orange-600" /></div>
-                                    Riwayat Servis Digital
-                                </dt>
-                                <dd class="mt-4 flex flex-auto flex-col text-base leading-7 text-slate-600 font-medium">
-                                    <p class="flex-auto">Lupakan buku servis manual yang mudah hilang. Kami menyimpan seluruh riwayat perbaikan mobil Anda di sistem cloud yang aman.</p>
-                                </dd>
-                            </div>
-                        </dl>
-                    </div>
-                </div>
-            </div>
-
-            <div id="contact" class="bg-slate-900 py-24 sm:py-32 text-white relative overflow-hidden">
-                <div class="mx-auto max-w-7xl px-6 lg:px-8">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <section v-if="stats" class="max-w-5xl mx-auto px-6 -mt-10 mb-20 relative z-20">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl">
+                    <div class="flex items-center gap-4 px-4 border-b sm:border-b-0 sm:border-r border-slate-800 pb-6 sm:pb-0">
+                        <div class="p-3 bg-blue-500/10 rounded-2xl"><Car class="w-8 h-8 text-blue-400" /></div>
                         <div>
-                            <h2 class="text-3xl font-black tracking-tight sm:text-4xl mb-6">Kunjungi Bengkel Kami</h2>
-                            <p class="text-lg text-slate-400 mb-8 font-medium">Kami siap membantu memastikan kendaraan Anda aman dan nyaman untuk perjalanan jauh maupun aktivitas sehari-hari.</p>
-                            
-                            <ul class="space-y-6">
-                                <li class="flex gap-4 items-start">
-                                    <MapPin class="w-6 h-6 text-blue-500 shrink-0" />
-                                    <div>
-                                        <p class="font-bold text-lg">Alamat Lengkap</p>
-                                        <p class="text-slate-400">{{ shop.shop_address || 'Alamat bengkel belum diatur.' }}</p>
-                                    </div>
-                                </li>
-                                <li class="flex gap-4 items-start">
-                                    <Clock class="w-6 h-6 text-blue-500 shrink-0" />
-                                    <div>
-                                        <p class="font-bold text-lg">Jam Operasional</p>
-                                        <p class="text-slate-400">Senin - Sabtu: 08.00 - 17.00 WIB<br>Minggu: Libur</p>
-                                    </div>
-                                </li>
-                                <li class="flex gap-4 items-start">
-                                    <Phone class="w-6 h-6 text-blue-500 shrink-0" />
-                                    <div>
-                                        <p class="font-bold text-lg">Telepon / WhatsApp</p>
-                                        <p class="text-slate-400">{{ shop.shop_phone || shop.phone || 'Kontak belum diatur.' }}</p>
-                                    </div>
-                                </li>
-                            </ul>
+                            <div class="text-2xl font-black text-white">{{ stats.cars_fixed.toLocaleString('id-ID') }}+</div>
+                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Mobil Tertangani</div>
                         </div>
-                        
-                        <div class="space-y-6">
-                            <div class="overflow-hidden rounded-3xl border border-slate-700 bg-slate-800 shadow-2xl h-[300px] md:h-[400px] relative">
-                                <iframe 
-                                    v-if="mapEmbedUrl"
-                                    width="100%" 
-                                    height="100%" 
-                                    style="border:0;" 
-                                    loading="lazy" 
-                                    allowfullscreen 
-                                    referrerpolicy="no-referrer-when-downgrade"
-                                    :src="mapEmbedUrl"
-                                    class="grayscale-[0.2] contrast-[1.1]"
-                                ></iframe>
-                                
-                                <div v-else class="flex flex-col items-center justify-center h-full text-center p-8">
-                                     <MapPin class="w-12 h-12 text-slate-600 mb-4" />
-                                     <p class="text-slate-500 font-medium text-sm">Alamat belum diatur dalam sistem.</p>
+                    </div>
+                    <div class="flex items-center gap-4 px-4 border-b sm:border-b-0 sm:border-r border-slate-800 pb-6 sm:pb-0">
+                        <div class="p-3 bg-cyan-500/10 rounded-2xl"><Users class="w-8 h-8 text-cyan-400" /></div>
+                        <div>
+                            <div class="text-2xl font-black text-white">{{ stats.active_mechanics }} Ahli</div>
+                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Mekanik Terlatih</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 px-4">
+                        <div class="p-3 bg-indigo-500/10 rounded-2xl"><ShieldCheck class="w-8 h-8 text-indigo-400" /></div>
+                        <div>
+                            <div class="text-2xl font-black text-white">{{ stats.years_active }} Thn</div>
+                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Pengalaman Luas</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="services" class="py-24 bg-slate-50">
+                <div class="max-w-7xl mx-auto px-6 lg:px-8">
+                    <div class="text-center mb-16">
+                        <h2 class="text-blue-600 font-black uppercase tracking-[0.2em] text-sm mb-4">Layanan Spesialis</h2>
+                        <p class="text-4xl font-black text-slate-900 leading-tight">Perawatan Kendaraan Profesional</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="group bg-white p-10 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                            <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-blue-600 transition-colors">
+                                <Wrench class="w-7 h-7 text-blue-600 group-hover:text-white" />
+                            </div>
+                            <h3 class="text-xl font-black text-slate-900 mb-4">Pemeliharaan Rutin</h3>
+                            <p class="text-slate-600 leading-relaxed font-medium">Ganti oli, filter udara, filter bensin, dan pembersihan injeksi untuk menjaga efisiensi bahan bakar tetap optimal.</p>
+                        </div>
+
+                        <div class="group bg-white p-10 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                            <div class="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-green-600 transition-colors">
+                                <ShieldCheck class="w-7 h-7 text-green-600 group-hover:text-white" />
+                            </div>
+                            <h3 class="text-xl font-black text-slate-900 mb-4">Sistem Pengereman</h3>
+                            <p class="text-slate-600 leading-relaxed font-medium">Pemeriksaan rem menyeluruh, penggantian kampas, dan pengurasan minyak rem untuk keamanan berkendara Anda.</p>
+                        </div>
+
+                        <div class="group bg-white p-10 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                            <div class="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-orange-600 transition-colors">
+                                <Clock class="w-7 h-7 text-orange-600 group-hover:text-white" />
+                            </div>
+                            <h3 class="text-xl font-black text-slate-900 mb-4">Tune Up Mesin</h3>
+                            <p class="text-slate-600 leading-relaxed font-medium">Kalibrasi ulang sistem mesin, pembersihan kerak karbon, dan pengecekan kelistrikan agar tenaga mesin tetap stabil.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="contact" class="py-24">
+                <div class="max-w-7xl mx-auto px-6 lg:px-8">
+                    <div class="bg-slate-900 rounded-[3rem] overflow-hidden shadow-3xl flex flex-col lg:flex-row">
+                        <div class="lg:w-1/2 p-12 lg:p-20 flex flex-col justify-center">
+                            <h2 class="text-4xl font-black text-white mb-8">Butuh Konsultasi? <br /><span class="text-blue-500">Kunjungi Kami</span></h2>
+                            
+                            <div class="space-y-8">
+                                <div class="flex gap-6">
+                                    <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center shrink-0"><MapPin class="w-6 h-6 text-blue-400" /></div>
+                                    <div>
+                                        <div class="text-white font-black text-lg">Alamat Bengkel</div>
+                                        <p class="text-slate-400 mt-1 leading-relaxed">{{ shop.shop_address || 'Silakan cek di bagian profil.' }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-6">
+                                    <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center shrink-0"><Clock class="w-6 h-6 text-blue-400" /></div>
+                                    <div>
+                                        <div class="text-white font-black text-lg">Waktu Operasional</div>
+                                        <p class="text-slate-400 mt-1">Senin - Sabtu: 08.00 - 17.00 WIB</p>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="bg-blue-600/10 rounded-2xl p-6 border border-blue-500/20 flex flex-col sm:flex-row items-center justify-between gap-6">
-                                <div class="text-center sm:text-left">
-                                    <h3 class="text-lg font-black mb-1">Siap Servis Hari Ini?</h3>
-                                    <p class="text-slate-400 text-sm font-medium">Klik tombol untuk booking via WhatsApp.</p>
-                                </div>
-                                <a :href="waLink" target="_blank" class="shrink-0 bg-[#25D366] hover:bg-[#128C7E] text-white font-bold py-3 px-6 rounded-full transition-all flex items-center gap-2 shadow-lg shadow-green-500/20">
-                                    <Phone class="w-4 h-4 fill-current" /> Hubungi Admin
-                                </a>
-                            </div>
+                            <a :href="waLink" target="_blank" class="mt-12 inline-flex items-center justify-center gap-3 bg-green-500 hover:bg-green-600 text-white font-black py-5 px-10 rounded-2xl transition-all shadow-lg shadow-green-500/20">
+                                <Phone class="w-5 h-5 fill-current" /> Konsultasi Sekarang (Gratis)
+                            </a>
                         </div>
                         
+                        <div class="lg:w-1/2 min-h-[400px] bg-slate-800 relative">
+                            <iframe 
+                                v-if="mapEmbedUrl"
+                                :src="mapEmbedUrl"
+                                width="100%" height="100%" style="border:0;" allowfullscreen loading="lazy">
+                            </iframe>
+                            <div v-else class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 p-10 text-center">
+                                <MapPin class="w-10 h-10 mb-4 opacity-20" />
+                                <p>Peta lokasi sedang disiapkan.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </section>
         </main>
 
-        <footer class="bg-slate-950 py-8 text-center border-t border-slate-800">
-            <p class="text-slate-500 font-medium text-sm">
-                &copy; {{ new Date().getFullYear() }} {{ shop.shop_name || 'Bengkel Kami' }}. All rights reserved.<br>
-                <span class="text-xs mt-2 block opacity-50">Developed by <a href="https://finicode.com/" target="_blank" class="text-blue-400 hover:text-blue-300">Finicode</a></span>
-            </p>
+        <footer class="bg-white border-t border-slate-100 py-12">
+            <div class="max-w-7xl mx-auto px-6 text-center">
+                <p class="text-slate-500 text-sm font-medium">
+                    © {{ new Date().getFullYear() }} {{ shop.shop_name }}. Profesionalisme & Kualitas Tanpa Kompromi.<br />
+                    <span class="text-xs opacity-50 mt-2 block tracking-widest">Developed by <a href="https://finicode.com" class="text-blue-500 hover:underline">Finicode</a></span>
+                </p>
+            </div>
         </footer>
+
+        <a :href="waLink" target="_blank" class="fixed bottom-6 right-6 z-[200] bg-green-500 p-4 rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all md:hidden">
+            <Phone class="w-7 h-7 text-white fill-current" />
+        </a>
 
     </div>
 </template>
+
+<style scoped>
+html {
+    scroll-behavior: smooth;
+}
+@keyframes bounce {
+    0%, 100% { transform: translateY(-5%); }
+    50% { transform: translateY(0); }
+}
+.animate-bounce {
+    animation: bounce 3s infinite ease-in-out;
+}
+</style>
