@@ -39,6 +39,8 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::put('/parts/{part}', [PartController::class, 'update'])->name('parts.update');
     Route::delete('/parts/{part}', [PartController::class, 'destroy'])->name('parts.destroy');
     Route::get('/admin/reports', [ReportController::class, 'index'])->name('admin.reports.index');
+
+    Route::post('/invoices/{invoice:id}/reopen', [InvoiceController::class, 'reopen'])->name('invoices.reopen');
 });
 
 Route::middleware(['auth', 'verified', 'staff'])->group(function () {

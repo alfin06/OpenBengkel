@@ -192,6 +192,25 @@ const updatePartQty = (part: any) => {
         }
     });
 };
+
+const reopenWorkOrder = () => {
+    // Check if invoice exists first
+    const invoiceId = props.workOrder.invoice?.id;
+
+    if (!invoiceId) {
+        toast.error("Data invoice tidak ditemukan untuk Work Order ini.");
+        return;
+    }
+
+    if (confirm('Buka kembali Work Order ini? Invoice akan di-reset dan stok akan dikembalikan sementara.')) {
+        router.post(route('invoices.reopen', invoiceId), {}, {
+            onSuccess: () => toast.success("Work Order dibuka kembali."),
+            onError: () => toast.error("Gagal membuka kembali nota."),
+        });
+    }
+};
+
+const isAdmin = computed(() => page.props.auth.user.role === 'admin');
 </script>
 
 <template>
@@ -207,6 +226,14 @@ const updatePartQty = (part: any) => {
                     ]">
                         {{ workOrder.status }}
                     </span>
+                    <Button 
+                        v-if="workOrder.status === 'Selesai' && isAdmin && workOrder.invoice" 
+                        variant="destructive" 
+                        size="sm" 
+                        @click="reopenWorkOrder"
+                        class="h-7 px-3 text-[10px] font-bold uppercase gap-1 animate-pulse">
+                        <RotateCcw class="w-3 h-3" /> Buka Nota
+                    </Button>
                 </div>
                 <div class="flex gap-2 no-print">
                     <Button variant="outline" @click="printJob" class="gap-2">

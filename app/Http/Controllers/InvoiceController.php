@@ -88,18 +88,23 @@ class InvoiceController extends Controller
             return ($i['price'] * $i['qty']) - ($i['discount'] ?? 0);
         });
 
+        $serviceTotal = $items->where('type', 'service')->sum(function($i) {
+            return ($i['price'] * $i['qty']) - ($i['discount'] ?? 0);
+        });
+
         $itemsSubtotal = $items->sum(function($i) {
             return ($i['price'] * $i['qty']) - ($i['discount'] ?? 0);
         });
         
         $grandTotal = $itemsSubtotal - ($request->discount ?? 0);
 
-        return DB::transaction(function () use ($request, $partsTotal, $grandTotal) {
+        return DB::transaction(function () use ($request, $partsTotal, $serviceTotal, $grandTotal) {
             $invoice = Invoice::updateOrCreate(
                 ['work_order_id' => $request->work_order_id],
                 [
                     'grand_total'    => $grandTotal,
                     'parts_total'    => $partsTotal,
+                    'labor_fee'      => $serviceTotal,
                     'status'         => $request->status,
                     'payment_method' => $request->payment_method,
                     'due_date'       => $request->due_date,
@@ -216,5 +221,38 @@ class InvoiceController extends Controller
             'invoice' => $invoice,
             'shop' => \DB::table('settings')->first(),
         ]);
+    }
+
+    public function reopen(Invoice $invoice)
+    {
+        // 1. Double check Admin permissions
+        if (!auth()->user()->isAdmin()) {
+            return back()->withErrors(['auth' => 'Anda tidak memiliki akses Admin.']);
+        }
+
+        \DB::transaction(function () use ($invoice) {
+            // 2. Return Stock to Inventory
+            foreach ($invoice->details as $item) {
+                if ($item->part_id) {
+                    $part = Part::find($item->part_id);
+                    // We add the qty back to parts table
+                    $part->increment('stock', $item->qty);
+                }
+            }
+
+            // 3. Update Statuses
+            // Set invoice to Draft so it's not counted in final reports
+            $invoice->update([
+                'status' => 'Draft',
+                'amount_paid' => 0, // Reset payment record
+                // If you have a 'change' or 'kembalian' field, reset that too:
+                // 'change' => 0, 
+            ]);
+            
+            // Move Work Order back to 'Proses' so your UI buttons re-appear
+            $invoice->workOrder->update(['status' => 'Proses']);
+        });
+
+        return back();
     }
 }

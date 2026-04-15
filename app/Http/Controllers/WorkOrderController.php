@@ -68,7 +68,8 @@ class WorkOrderController extends Controller
                 'vehicle.customer', 
                 'items', 
                 'parts',
-                'mechanic'
+                'mechanic', 
+                'invoice'
             ]),
             // Fetch all active mechanics to populate the dropdown
             'mechanics' => Mechanic::where('is_active', true)->get() 

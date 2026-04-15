@@ -12,6 +12,7 @@ class Invoice extends Model
     protected $fillable = [
         'work_order_id',
         'parts_total',
+        'labor_fee',
         'grand_total',
         'discount',
         'payment_method',

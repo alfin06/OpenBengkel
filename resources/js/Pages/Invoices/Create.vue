@@ -219,7 +219,7 @@ const saveAsDraft = () => {
                         <Card class="border-slate-200 shadow-sm opacity-90 overflow-hidden">
                             <CardHeader class="bg-slate-100 py-3 flex flex-row items-center justify-between">
                                 <CardTitle class="text-[11px] font-black text-slate-600 uppercase flex items-center gap-2">
-                                    <Package class="w-4 h-4" /> Spareparts (Dari Stok Internal)
+                                    <Package class="w-4 h-4" /> Spareparts
                                 </CardTitle>
                                 <a :href="route('work-orders.show', workOrder.id)" class="text-[10px] font-bold text-blue-600 flex items-center gap-1 hover:underline">
                                     <ExternalLink class="w-3 h-3" /> Edit Qty di Work Order
@@ -282,7 +282,7 @@ const saveAsDraft = () => {
                                             <th class="p-4 text-center w-20">Qty</th>
                                             <th class="p-4 text-right w-32">Harga Satuan</th>
                                             <th class="p-4 text-right w-32">Diskon Item</th>
-                                            <th class="p-4 w-10"></th>
+                                            <th class="p-4 text-right w-32">Total</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y">
@@ -306,6 +306,9 @@ const saveAsDraft = () => {
                                                 <Button variant="ghost" size="icon" @click="removeItem(index)" class="text-slate-300 hover:text-red-500">
                                                     <Trash2 class="w-4 h-4" />
                                                 </Button>
+                                            </td>
+                                            <td class="p-4 text-right font-mono font-bold text-slate-900">
+                                                {{ formatIDR((item.price * item.qty) - (item.discount || 0)) }}
                                             </td>
                                         </tr>
                                     </tbody>
