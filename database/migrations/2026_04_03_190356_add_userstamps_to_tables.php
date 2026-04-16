@@ -53,11 +53,6 @@ return new class extends Migration
             $table->foreignId('updated_by')->nullable()->constrained('users');
         });
 
-        Schema::table('mechanics', function (Blueprint $table) {
-            $table->foreignId('created_by')->nullable()->constrained('users');
-            $table->foreignId('updated_by')->nullable()->constrained('users');
-        });
-
         Schema::table('parts', function (Blueprint $table) {
             $table->foreignId('created_by')->nullable()->constrained('users');
             $table->foreignId('updated_by')->nullable()->constrained('users');

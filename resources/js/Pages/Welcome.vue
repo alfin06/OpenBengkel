@@ -77,11 +77,6 @@ const formatPhone = (phone: string | null) => {
                     <div class="flex items-center gap-6">
                         <a href="#services" class="hidden md:block text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Layanan</a>
                         <a href="#contact" class="hidden md:block text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Hubungi Kami</a>
-                        <div v-if="canLogin">
-                            <Link v-if="user" :href="route('dashboard')" class="bg-blue-600 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-md">
-                                Dashboard
-                            </Link>
-                        </div>
                     </div>
                 </div>
             </div>

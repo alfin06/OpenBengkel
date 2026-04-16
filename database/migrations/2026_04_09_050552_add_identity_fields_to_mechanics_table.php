@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::table('mechanics', function (Blueprint $table) {
             $table->string('nik', 16)->nullable()->after('name');
             $table->string('ktp_path')->nullable()->after('nik');
+            $table->timestamp('deleted_at')->nullable()->after('updated_by');
         });
     }
 
