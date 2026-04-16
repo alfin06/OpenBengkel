@@ -290,6 +290,7 @@ const saveAsDraft = () => {
                                             <th class="p-4 text-right w-32">Harga Satuan</th>
                                             <th class="p-4 text-right w-32">Diskon Item</th>
                                             <th class="p-4 text-right w-32">Total</th>
+                                            <th class="p-4 w-4"></th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y">
@@ -309,13 +310,13 @@ const saveAsDraft = () => {
                                             <td class="p-2 text-right">
                                                 <Input v-model.number="item.discount" type="number" class="h-9 text-right text-red-600 bg-red-50/30" />
                                             </td>
+                                            <td class="p-4 text-right font-mono font-bold text-slate-900">
+                                                {{ formatIDR((item.price * item.qty) - (item.discount || 0)) }}
+                                            </td>
                                             <td class="p-2 text-center">
                                                 <Button variant="ghost" size="icon" @click="removeItem(index)" class="text-slate-300 hover:text-red-500">
                                                     <Trash2 class="w-4 h-4" />
                                                 </Button>
-                                            </td>
-                                            <td class="p-4 text-right font-mono font-bold text-slate-900">
-                                                {{ formatIDR((item.price * item.qty) - (item.discount || 0)) }}
                                             </td>
                                         </tr>
                                     </tbody>

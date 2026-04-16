@@ -99,6 +99,10 @@ class WorkOrderController extends Controller
 
     public function addPart(Request $request, WorkOrder $workOrder)
     {
+        if ($workOrder->status === 'Selesai') {
+            return back()->with('error', 'Gagal: Nota sudah selesai. Silakan buka kembali nota jika ingin menambah barang.');
+        }
+    
         $request->validate(['sku' => 'required|string']);
         
         $part = Part::where('sku', $request->sku)->first();
@@ -209,6 +213,10 @@ class WorkOrderController extends Controller
 
     public function updatePartQty(Request $request, WorkOrderPart $workOrderPart)
     {
+        if ($workOrderPart->workOrder->status === 'Selesai') {
+            return back()->with('error', 'Gagal: Jumlah barang tidak bisa diubah karena nota sudah selesai.');
+        }
+
         $request->validate(['qty' => 'required|integer|min:1']);
 
         $oldQty = $workOrderPart->qty;
@@ -229,6 +237,15 @@ class WorkOrderController extends Controller
     public function removePart($id)
     {
         $workOrderPart = WorkOrderPart::find($id);
+
+        if (!$workOrderPart) {
+            return back()->with('error', 'Data tidak ditemukan.');
+        }
+
+        // Backend Guard
+        if ($workOrderPart->workOrder->status === 'Selesai') {
+            return back()->with('error', 'Gagal: Barang tidak bisa dihapus dari nota yang sudah selesai.');
+        }
     
         if ($workOrderPart) {
             // Return the stock to the inventory

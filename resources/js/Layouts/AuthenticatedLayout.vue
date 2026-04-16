@@ -65,7 +65,7 @@ watch(() => page.props.flash, (flash) => {
                                                     : '/' + $page.props.shop.logo_path)
                                                 : null
                                         " 
-                                        class="block h-9 w-auto fill-current text-blue-600" />
+                                        class="block h-16 w-auto fill-current text-blue-600" />
                                 </Link>
                             </div>
 

@@ -32,6 +32,28 @@ const mapEmbedUrl = computed(() => {
     const encodedAddress = encodeURIComponent(address);
     return `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 });
+
+const formatPhone = (phone: string | null) => {
+    if (!phone) return '-';
+    
+    // Remove all non-numeric characters
+    const cleaned = ('' + phone).replace(/\D/g, '');
+
+    // Landline format (e.g., 024-3551072)
+    if (cleaned.startsWith('02') || cleaned.startsWith('03')) {
+        return cleaned.replace(/(\d{3})(\d+)/, '$1-$2');
+    }
+
+    // Mobile format (e.g., 0812-3456-7890)
+    // Groups of 4-4-(rest)
+    const match = cleaned.match(/^(\d{4})(\d{4})(\d+)$/);
+    if (match) {
+        return `${match[1]}-${match[2]}-${match[3]}`;
+    }
+
+    // Fallback if it doesn't match standard patterns
+    return cleaned;
+};
 </script>
 
 <template>
@@ -84,7 +106,7 @@ const mapEmbedUrl = computed(() => {
                         </span>
                     </h1>
                     <p class="mt-8 text-lg lg:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed font-medium">
-                        Solusi perawatan kendaraan menyeluruh mulai dari ganti oli rutin hingga perbaikan berat. Kami pastikan perjalanan Anda tetap aman dan nyaman.
+                        Solusi perawatan kendaraan menyeluruh mulai dari ganti oli rutin hingga perbaikan berat. Kami selalu siap memberikan pelayanan terbaik untuk mobil kesayangan anda.
                     </p>
                     
                     <div class="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -180,10 +202,18 @@ const mapEmbedUrl = computed(() => {
                                         <p class="text-slate-400 mt-1">Senin - Sabtu: 08.00 - 17.00 WIB</p>
                                     </div>
                                 </div>
+                                <div class="flex gap-6">
+                                    <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center shrink-0"><Phone class="w-6 h-6 text-blue-400" /></div>
+                                    <div>
+                                        <div class="text-white font-black text-lg">Telepon</div>
+                                        <p class="text-slate-400 mt-1">WhatsApp: {{ formatPhone(shop.shop_phone) || '-' }}</p>
+                                        <p class="text-slate-400 mt-1">Telepon: {{ formatPhone(shop.shop_phone2) || '-' }}</p>
+                                    </div>
+                                </div>
                             </div>
 
                             <a :href="waLink" target="_blank" class="mt-12 inline-flex items-center justify-center gap-3 bg-green-500 hover:bg-green-600 text-white font-black py-5 px-10 rounded-2xl transition-all shadow-lg shadow-green-500/20">
-                                <Phone class="w-5 h-5 fill-current" /> Konsultasi Sekarang (Gratis)
+                                <Phone class="w-5 h-5 fill-current" /> Konsultasi Sekarang
                             </a>
                         </div>
                         
