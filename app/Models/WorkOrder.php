@@ -7,10 +7,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Traits\UserTracking;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+use App\Models\Customer;
+use App\Models\Vehicle;
 
 class WorkOrder extends Model
 {
     use UserTracking;
+    use SoftDeletes;
     
     protected $fillable = [
         'vehicle_id',
@@ -59,5 +64,10 @@ class WorkOrder extends Model
     public function mechanic()
     {
         return $this->belongsTo(Mechanic::class);
+    }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
     }
 }

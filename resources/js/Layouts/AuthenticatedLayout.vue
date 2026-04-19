@@ -75,6 +75,9 @@ watch(() => page.props.flash, (flash) => {
                                     <NavLink :href="route('admin.dashboard')" :active="route().current('admin.dashboard')">
                                         Dashboard
                                     </NavLink>
+                                    <NavLink :href="route('admin.work-orders.monitor')" :active="route().current('admin.work-orders.monitor')">
+                                        Monitoring
+                                    </NavLink>
                                 </template>
 
                                 <template v-if="user?.role === 'staff'">
@@ -200,6 +203,9 @@ watch(() => page.props.flash, (flash) => {
                         
                         <template v-if="user?.role === 'admin'">
                             <ResponsiveNavLink :href="route('admin.dashboard')" :active="route().current('admin.dashboard')"> Dashboard </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('admin.work-orders.monitor')" :active="route().current('admin.work-orders.monitor')"> 
+                                Monitoring 
+                            </ResponsiveNavLink>
                         </template>
 
                         <template v-if="user?.role === 'staff'">

@@ -259,4 +259,60 @@ class WorkOrderController extends Controller
 
         return redirect()->back()->with('success', 'Barang dihapus dan stok dikembalikan.');
     }
+
+    public function destroy(WorkOrder $workOrder)
+    {
+        // Only allow deletion if NOT invoiced/finished
+        // Or allow Admin to delete anything
+        if ($workOrder->status === 'finished' && !auth()->user()->is_admin) {
+            return back()->with('error', 'Only admins can delete finished work orders.');
+        }
+
+        \DB::transaction(function () use ($workOrder) {
+            // 1. Return parts to stock
+            foreach ($workOrder->parts as $woPart) {
+                $woPart->part->increment('stock', $woPart->quantity);
+            }
+
+            // 2. Soft delete the WO
+            $workOrder->delete();
+        });
+
+        return redirect()->route('dashboard')->with('success', 'Work Order deleted and stock restored.');
+
+    }
+
+    public function adminIndex(Request $request)
+    {
+        // Default range is today
+        $startDate = $request->input('start_date', now()->format('Y-m-d'));
+        $endDate = $request->input('end_date', now()->format('Y-m-d'));
+        $status = $request->input('status', 'default'); // Use 'default' string to trigger logic
+
+        $query = WorkOrder::with(['customer', 'vehicle', 'invoice'])
+            ->whereBetween('created_at', [
+                $startDate . ' 00:00:00', 
+                $endDate . ' 23:59:59'
+            ]);
+
+        // Handle Filters
+        if ($status === 'default') {
+            // Your requested default
+            $query->whereIn('status', ['pending', 'proses']);
+        } elseif ($status !== 'all') {
+            // Specific status (Selesai, Invoiced, etc.)
+            $query->where('status', $status);
+        } 
+        // If status is 'all', we don't add any whereStatus clause
+
+        return Inertia::render('WorkOrders/WorkOrderMonitor', [
+            'workOrders' => $query->latest()->paginate(15)->withQueryString(),
+            'filters' => [
+                // Use cast to string or default to empty string
+                'start_date' => (string) ($request->start_date ?? ''),
+                'end_date'   => (string) ($request->end_date ?? ''),
+                'status'     => (string) ($request->status ?? 'default'),
+            ]
+        ]);
+    }
 }

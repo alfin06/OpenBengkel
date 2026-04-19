@@ -41,6 +41,9 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/admin/reports', [ReportController::class, 'index'])->name('admin.reports.index');
 
     Route::post('/invoices/{invoice:id}/reopen', [InvoiceController::class, 'reopen'])->name('invoices.reopen');
+
+    Route::get('/admin/monitoring', [WorkOrderController::class, 'adminIndex'])->name('admin.work-orders.monitor');
+    Route::delete('/work-orders/{workOrder}', [WorkOrderController::class, 'destroy'])->name('work-orders.destroy');
 });
 
 Route::middleware(['auth', 'verified', 'staff'])->group(function () {

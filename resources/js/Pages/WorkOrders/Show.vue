@@ -211,6 +211,12 @@ const reopenWorkOrder = () => {
 };
 
 const isAdmin = computed(() => page.props.auth.user.role === 'admin');
+
+const deleteWorkOrder = () => {
+    if (confirm('Are you sure? This will delete the WO and return all parts to stock.')) {
+        router.delete(route('work-orders.destroy', props.workOrder.id));
+    }
+}
 </script>
 
 <template>
@@ -234,6 +240,12 @@ const isAdmin = computed(() => page.props.auth.user.role === 'admin');
                         class="h-7 px-3 text-[10px] font-bold uppercase gap-1 animate-pulse">
                         <RotateCcw class="w-3 h-3" /> Buka Nota
                     </Button>
+                    <button 
+                        v-if=isAdmin
+                        @click="deleteWorkOrder"
+                        class="text-red-600 hover:text-red-900">
+                        <Trash2 class="w-3 h-3" />
+                    </button>
                 </div>
                 <div class="flex gap-2 no-print">
                     <Button variant="outline" @click="printJob" class="gap-2">
