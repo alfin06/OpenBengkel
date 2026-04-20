@@ -23,6 +23,7 @@ const form = useForm({
     phone_1: '',
     address: '',
     // WO Info
+    date: new Date().toISOString().split('T')[0],
     driver_name: '',
     odometer: '',
     complaints: '',
@@ -194,6 +195,16 @@ const submit = () => {
                     </CardHeader>
                     <CardContent class="grid grid-cols-1 gap-4 pt-6">
                         <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label class="text-blue-600 font-bold">Tgl. Masuk</Label>
+                                <Input 
+                                    v-model="form.date" 
+                                    type="date" 
+                                    class="border-blue-200 focus:ring-blue-500 font-bold" 
+                                    required 
+                                />
+                                <p class="text-[10px] text-gray-500 mt-1 italic">*Ubah jika mendaftarkan unit kemarin</p>
+                            </div>
                             <div>
                                 <Label>Kilometer (Odo)</Label>
                                 <Input v-model="form.odometer" type="number" placeholder="0" class="font-mono font-bold" />

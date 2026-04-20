@@ -196,12 +196,17 @@ class WorkOrderController extends Controller
                 ]
             );
 
+            $inputDate = $request->input('date'); // e.g., "2026-04-20"
+            $currentTime = now()->format('H:i:s');
+            $timestamp = $inputDate . ' ' . $currentTime;
+
             // 3. Create Work Order
             $workOrder = WorkOrder::create([
                 'vehicle_id' => $vehicle->id,
                 'driver_name' => $request->driver_name ?? $customer->name,
                 'odometer' => $request->odometer,
                 'complaints' => $request->complaints,
+                'created_at'  => $timestamp,
                 'status' => 'Pending',
                 'created_by' => auth()->id(),
             ]);

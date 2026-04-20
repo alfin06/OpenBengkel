@@ -24,6 +24,7 @@ class WorkOrder extends Model
         'complaints',
         'status',
         'mechanic_id',
+        'created_at'
     ];
 
     public function invoice() {
