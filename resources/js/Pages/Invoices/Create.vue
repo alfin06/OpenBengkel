@@ -16,6 +16,18 @@ const props = defineProps<{
     existingInvoice: any,
 }>();
 
+const paymentOptions = [
+    { label: 'CASH', value: 'Cash', charge: 0 },
+    { label: 'KARTU KREDIT', value: 'Credit Card', charge: 0.03 },
+    { label: 'TRANSFER (Anton R)', value: 'Transfer Anton', charge: 0 },
+    { label: 'TRANSFER (Martino E)', value: 'Transfer Martino', charge: 0 },
+    { label: 'QRIS BCA', value: 'QRIS BCA', charge: 0 },
+    { label: 'QRIS MEGA', value: 'QRIS MEGA', charge: 0 },
+    { label: 'DEBIT BCA', value: 'Debit BCA', charge: 0 },
+    { label: 'DEBIT (Non BCA)', value: 'Debit Non-BCA', charge: 0.03 },
+    
+];
+
 // local ref for the editable "Lain-lain" table only
 const editableInternalParts = ref([]);
 const lainLainItems = ref([]);
@@ -33,25 +45,6 @@ const form = useForm({
     notes: ''
 });
 
-// Sync logic: separates locked stock from editable billing
-const syncData = () => {
-    // We use props.internalParts which is updated by Inertia after a successful POST
-    editableInternalParts.value = props.internalParts.map(p => ({ ...p }));
-    
-    const rawLainLain = props.initialLainLain || [];
-    lainLainItems.value = Array.isArray(rawLainLain) ? rawLainLain : Object.values(rawLainLain);
-
-    if (props.existingInvoice) {
-        form.discount = props.existingInvoice.discount_total || 0;
-        form.payment_method = props.existingInvoice.payment_method || 'Cash';
-        form.status = props.existingInvoice.status;
-        form.due_date = props.existingInvoice.due_date || '';
-        form.amount_paid = props.existingInvoice.amount_paid || 0;
-    }
-};
-
-syncData();
-
 const addLainLain = (type = 'service') => {
     lainLainItems.value.push({
         name: '', 
@@ -63,16 +56,6 @@ const addLainLain = (type = 'service') => {
     });
 };
 
-const removeItem = (index: number) => {
-    lainLainItems.value.splice(index, 1);
-};
-
-const formatIDR = (val: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
-
-// Combine both lists for calculations
-const allItemsForTotal = computed(() => {
-    return [...editableInternalParts.value, ...lainLainItems.value];
-});
 
 const subtotal = computed(() => {
     // 1. Calculate Internal Parts (Price * Qty - Discount)
@@ -96,6 +79,83 @@ const subtotal = computed(() => {
 
 const grandTotal = computed(() => subtotal.value - form.discount);
 
+
+// Helper to update the 3% Biaya Admin
+const updateAdminFee = () => {
+    const selected = paymentOptions.find(opt => opt.value === form.payment_method);
+    
+    // Always remove existing fee first to recalculate correctly
+    lainLainItems.value = lainLainItems.value.filter(item => item.name !== 'Biaya Admin (3%)');
+
+    if (selected && selected.charge > 0) {
+        const baseAmount = form.status === 'paid' ? subtotal.value : form.amount_paid;
+        
+        if (baseAmount > 0) {
+            const fee = Math.round(baseAmount * selected.charge);
+            lainLainItems.value.push({
+                name: 'Biaya Admin (3%)',
+                qty: 1,
+                price: fee,
+                type: 'fee',
+                discount: 0,
+                is_internal: false
+            });
+        }
+    }
+};
+
+// Watch both payment method and DP amount
+watch(() => [form.payment_method, form.status, form.amount_paid], () => {
+    updateAdminFee();
+}, { deep: true });
+
+// Sync logic: separates locked stock from editable billing
+const syncData = () => {
+    // Sync internal parts
+    editableInternalParts.value = props.internalParts.map(p => ({ ...p }));
+    
+    // Sync other items, but FILTER OUT the Biaya Admin from the incoming list
+    // so our local watcher can recreate it based on the current form state
+    const rawLainLain = props.initialLainLain || [];
+    const incomingItems = Array.isArray(rawLainLain) ? rawLainLain : Object.values(rawLainLain);
+    
+    lainLainItems.value = incomingItems.filter(item => item.name !== 'Biaya Admin (3%)');
+
+    if (props.existingInvoice) {
+        form.discount = props.existingInvoice.discount_total || 0;
+        form.payment_method = props.existingInvoice.payment_method || 'Cash';
+        // Force the status to lowercase to match your button logic
+        form.status = props.existingInvoice.status?.toLowerCase() || 'paid';
+        form.due_date = props.existingInvoice.due_date || '';
+        form.amount_paid = props.existingInvoice.amount_paid || 0;
+
+        const statusFromServer = props.existingInvoice.status?.toLowerCase();
+        
+        if (statusFromServer === 'draft') {
+            // If it's a draft, determine the button highlight based on payment method
+            form.status = (form.payment_method === 'Receivable') ? 'unpaid' : 'paid';
+        } else {
+            form.status = statusFromServer || 'paid';
+        }
+    }
+
+    // After syncing data, manually trigger the fee calculation
+    updateAdminFee();
+};
+
+syncData();
+
+const removeItem = (index: number) => {
+    lainLainItems.value.splice(index, 1);
+};
+
+const formatIDR = (val: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
+
+// Combine both lists for calculations
+const allItemsForTotal = computed(() => {
+    return [...editableInternalParts.value, ...lainLainItems.value];
+});
+
 const processTransaction = (action: 'whatsapp' | 'finish' | 'save') => {
     if (form.processing) return;
 
@@ -116,6 +176,8 @@ const processTransaction = (action: 'whatsapp' | 'finish' | 'save') => {
             form.status = 'paid'; 
         }
     }
+
+    updateAdminFee();
 
     form.items = [...editableInternalParts.value, ...lainLainItems.value];
     
@@ -347,6 +409,27 @@ const saveAsDraft = () => {
                                 <div class="grid grid-cols-2 gap-2">
                                     <Button variant="outline" :class="form.status === 'paid' ? 'bg-green-600 text-white border-green-600' : ''" @click="form.status = 'paid'; form.payment_method = 'Cash'">LUNAS</Button>
                                     <Button variant="outline" :class="form.status === 'unpaid' ? 'bg-red-600 text-white border-red-600' : ''" @click="form.status = 'unpaid'; form.payment_method = 'Receivable'">HUTANG</Button>
+                                </div>
+
+                                <div class="space-y-2 pt-2">
+                                    <label class="text-[10px] font-black uppercase text-slate-400">
+                                        {{ form.status === 'paid' ? 'Metode Pembayaran' : 'Metode Pembayaran DP' }}
+                                    </label>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <Button 
+                                            v-for="opt in paymentOptions" 
+                                            :key="opt.value"
+                                            type="button"
+                                            variant="outline" 
+                                            :class="[
+                                                'text-[9px] h-9 px-1 font-bold transition-all leading-tight',
+                                                form.payment_method === opt.value ? 'bg-blue-600 text-white border-blue-600' : 'bg-white'
+                                            ]"
+                                            @click="form.payment_method = opt.value"
+                                        >
+                                            {{ opt.label }}
+                                        </Button>
+                                    </div>
                                 </div>
 
                                 <div v-if="form.status === 'unpaid'" 

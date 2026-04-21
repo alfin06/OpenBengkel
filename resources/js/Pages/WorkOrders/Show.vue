@@ -33,7 +33,7 @@ const isSearching = ref(false);
 
 // This function fetches the items from your "Data Barang" table
 const fetchParts = debounce(async (query) => {
-    if (query.length < 2) {
+    if (!query ||query.length < 2) {
         searchResults.value = [];
         return;
     }

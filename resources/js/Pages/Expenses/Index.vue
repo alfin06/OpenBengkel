@@ -76,7 +76,6 @@ const totalExpenses = computed(() => {
                                     <select v-model="form.category" class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                         <option>Konsumsi / Makan</option>
                                         <option>Listrik & Air</option>
-                                        <option>Sparepart Urgent (Toko Luar)</option>
                                         <option>Beli Alat Bengkel</option>
                                         <option>Transportasi / Bensin</option>
                                         <option>Lain-lain</option>

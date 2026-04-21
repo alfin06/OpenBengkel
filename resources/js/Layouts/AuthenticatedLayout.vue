@@ -15,6 +15,19 @@ const page = usePage();
 // Safely fetch user data
 const user = computed(() => page.props.auth?.user ?? null);
 
+const cleanLogoUrl = computed(() => {
+    // 1. If the database has a path, use it (ensuring it starts with /storage/)
+    const dbPath = page.props.shop?.logo_path;
+    
+    if (dbPath) {
+        // If the DB says "logo/logo.png", we turn it into "/storage/logo/logo.png"
+        return dbPath.startsWith('http') ? dbPath : `/storage/${dbPath.replace(/^\//, '')}`;
+    }
+    
+    // 2. Hardcoded fallback to your actual file location
+    return '/storage/logo/logo.png'; 
+});
+
 // Global listener for Flash Messages
 watch(() => page.props.flash, (flash) => {
     if (flash?.success) {
@@ -58,14 +71,9 @@ watch(() => page.props.flash, (flash) => {
                             <div class="flex shrink-0 items-center">
                                 <Link :href="user?.role === 'admin' ? route('admin.dashboard') : route('dashboard')">
                                     <ApplicationLogo 
-                                        :logo-url="
-                                            $page.props.shop?.logo_path 
-                                                ? ($page.props.shop.logo_path.startsWith('/') || $page.props.shop.logo_path.startsWith('http')
-                                                    ? $page.props.shop.logo_path 
-                                                    : '/' + $page.props.shop.logo_path)
-                                                : null
-                                        " 
-                                        class="block h-16 w-auto fill-current text-blue-600" />
+                                        :logoUrl="cleanLogoUrl"
+                                        class="block h-16 w-auto fill-current text-blue-600" 
+                                    />
                                 </Link>
                             </div>
 
@@ -86,9 +94,6 @@ watch(() => page.props.flash, (flash) => {
                                     </NavLink>
                                 </template>
 
-                                <!-- <NavLink :href="route('work-orders.create')" :active="route().current('work-orders.create')">
-                                    Check-In Mobil
-                                </NavLink> -->
                                 <NavLink :href="route('work-orders.quick-checkin')" :active="route().current('work-orders.quick-checkin')">
                                     <div class="flex items-center gap-2">
                                         Check-in
@@ -212,7 +217,7 @@ watch(() => page.props.flash, (flash) => {
                             <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')"> Dashboard </ResponsiveNavLink>
                         </template>
 
-                        <ResponsiveNavLink :href="route('work-orders.create')" :active="route().current('work-orders.create')"> Check-In Mobil </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('work-orders.quick-checkin')" :active="route().current('work-orders.quick-checkin')"> Check-In</ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('customers.index')" :active="route().current('customers.index')"> Pelanggan </ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('expenses.index')" :active="route().current('expenses.index')"> Buku Pengeluaran </ResponsiveNavLink>
                         

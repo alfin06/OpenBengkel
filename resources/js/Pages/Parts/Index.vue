@@ -182,7 +182,7 @@ const deletePart = () => {
                         <div class="md:col-span-1">
                             <Label class="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Tipe</Label>
                             <select v-model="form.type" class="w-full border border-input rounded-md px-3 py-2 h-10 text-sm bg-white">
-                                <option value="Part">Sparepart</option>
+                                <option value="Part">Part</option>
                                 <option value="Service">Jasa</option>
                             </select>
                         </div>
