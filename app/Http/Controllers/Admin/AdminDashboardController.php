@@ -23,7 +23,10 @@ class AdminDashboardController extends Controller
         $now = Carbon::now();
 
         // 1. Financial Metrics
-        $totalIncome = Invoice::whereMonth('created_at', $now->month)->whereYear('created_at', $now->year)->sum('grand_total');
+        $totalIncome = Invoice::where('status', 'paid')
+                      ->whereMonth('created_at', $now->month)
+                      ->whereYear('created_at', $now->year)
+                      ->sum('amount_paid');
         $totalExpense = Expense::whereMonth('expense_date', $now->month)->whereYear('expense_date', $now->year)->sum('amount');
         
         // 2. Chart Data (Logic remains exactly the same as before...)

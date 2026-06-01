@@ -169,7 +169,17 @@ class InvoiceController extends Controller
 
             // 4. Update Work Order Status
             if ($request->status !== 'draft') {
-                WorkOrder::where('id', $request->work_order_id)->update(['status' => 'Selesai']);
+                #WorkOrder::where('id', $request->work_order_id)->update(['status' => 'Selesai']);
+                $workOrder = WorkOrder::find($request->work_order_id);
+                $workOrder->update(['status' => 'Selesai']);
+
+                // Update the vehicle's last serviced records
+                if ($workOrder->vehicle) {
+                    $workOrder->vehicle->update([
+                        'last_serviced_at' => now()->format('Y-m-d'),
+                        'last_serviced_odometer' => $workOrder->odometer,
+                    ]);
+                }
             } else {
                 WorkOrder::where('id', $request->work_order_id)->update(['status' => 'Proses']);
             }

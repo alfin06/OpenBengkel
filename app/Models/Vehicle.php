@@ -38,4 +38,12 @@ class Vehicle extends Model
     {
         return $this->hasMany(WorkOrder::class);
     }
+
+    public function scopeNeedsReminder($query)
+    {
+        // Fetch vehicles where the last service was 90 days ago or more
+        // AND prevent spamming by making sure we don't remind them if they came recently
+        return $query->where('last_serviced_at', '<=', now()->subMonths(3)->format('Y-m-d'))
+                    ->with(['customer']);
+    }
 }

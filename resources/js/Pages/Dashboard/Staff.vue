@@ -6,13 +6,15 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input'; // Make sure this is imported
 import { 
     Wrench, AlertCircle, CarFront, FileText, 
-    User, Gauge, Search, SearchX, ArrowRight
+    User, Gauge, Search, SearchX, ArrowRight,
+    MessageSquare, CalendarClock, ExternalLink
 } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 
 const props = defineProps<{
     activeWorkOrders: any[];
     receivablesDueToday: any[];
+    remindersDue: any[];
 }>();
 
 const formatIDR = (val: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
@@ -42,6 +44,12 @@ const filteredWorkOrders = computed(() => {
                customer.includes(search);
     });
 });
+
+const formatUrlDate = (dateString: string) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+};
 </script>
 
 <template>
@@ -171,8 +179,40 @@ const filteredWorkOrders = computed(() => {
                             </div>
                         </CardContent>
                     </Card>
-                </div>
 
+                    <Card class="border-2 border-amber-200 bg-amber-50/10 shadow-sm">
+                        <CardHeader class="bg-amber-50/50 border-b pb-3">
+                            <CardTitle class="text-xs font-black text-amber-700 uppercase flex items-center gap-2">
+                                <CalendarClock class="w-4 h-4 text-amber-600" /> Pengingat Servis Berkala (3 Bulan+)
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent class="p-0">
+                            <div class="divide-y divide-slate-100 max-h-[350px] overflow-y-auto">
+                                <div v-for="v in remindersDue" :key="v.id" class="p-4 flex justify-between items-center bg-white hover:bg-slate-50 transition-colors">
+                                    <div>
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="bg-slate-900 text-white px-2 py-0.5 rounded font-mono font-bold text-[10px]">{{ v.plate_number }}</span>
+                                            <span class="font-bold text-sm text-slate-800 uppercase">{{ v.customer_name }}</span>
+                                        </div>
+                                        <p class="text-xs text-slate-500 uppercase">{{ v.vehicle_info }}</p>
+                                        <p class="text-[10px] text-slate-400 mt-1">Servis Terakhir: {{ formatUrlDate(v.last_serviced) }}</p>
+                                    </div>
+                                    <div>
+                                        <a :href="v.wa_url" target="_blank">
+                                            <Button size="sm" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-1 text-xs px-3 h-9 shadow-sm">
+                                                <MessageSquare class="w-3.5 h-3.5" /> Kirim WA
+                                            </Button>
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div v-if="remindersDue.length === 0" class="p-8 text-center text-slate-400 italic text-sm">
+                                    Semua pelanggan sudah diingatkan atau belum memasuki masa jatuh tempo servis.
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
         </div>
     </AuthenticatedLayout>
