@@ -32,7 +32,7 @@ OpenBengkel is a web-based application designed to help auto repair shops manage
 
 1.  Clone the repository:
     ```bash
-    git clone https://github.com/your-username/OpenBengkel.git
+    git clone https://github.com/alfin06/OpenBengkel.git
     ```
 2.  Navigate to the project directory:
     ```bash
