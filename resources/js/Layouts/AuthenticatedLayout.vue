@@ -88,7 +88,7 @@ watch(() => page.props.flash, (flash) => {
                                     </NavLink>
                                 </template>
 
-                                <template v-if="user?.role === 'staff'">
+                                <template v-if="['staff', 'finance'].includes(user?.role)">
                                     <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
                                         Dashboard
                                     </NavLink>
@@ -213,7 +213,7 @@ watch(() => page.props.flash, (flash) => {
                             </ResponsiveNavLink>
                         </template>
 
-                        <template v-if="user?.role === 'staff'">
+                        <template v-if="['staff', 'finance'].includes(user?.role)">
                             <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')"> Dashboard </ResponsiveNavLink>
                         </template>
 

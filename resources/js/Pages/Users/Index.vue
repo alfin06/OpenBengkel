@@ -86,6 +86,7 @@ const deleteUser = (id: number) => {
                             <Label>Role</Label>
                             <select v-model="form.role" class="w-full mt-1 rounded-md border-slate-300 shadow-sm">
                                 <option value="staff">Staff (Operasional)</option>
+                                <option value="finance">Finance (Keuangan)</option>
                                 <option value="admin">Admin (Management)</option>
                             </select>
                         </div>

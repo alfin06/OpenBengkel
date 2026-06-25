@@ -42,4 +42,15 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';
     }
+
+    public function isFinance()
+    {
+        return $this->role === 'finance';
+    }
+
+    // Helper for anything that requires elevated privileges (Edit/Delete)
+    public function canManageData()
+    {
+        return in_array($this->role, ['admin', 'finance']);
+    }
 }

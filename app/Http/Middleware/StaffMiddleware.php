@@ -11,8 +11,8 @@ class StaffMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // If the user is Staff, let them through to the Staff Dashboard
-        if (Auth::check() && Auth::user()->role === 'staff') {
+        // If the user is Staff or Finance, let them through to the Staff Dashboard
+        if (Auth::check() && (Auth::user()->role === 'staff' || Auth::user()->role === 'finance')) {
             return $next($request);
         }
 

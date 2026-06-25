@@ -24,7 +24,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', Rules\Password::defaults()],
-            'role' => 'required|in:admin,staff',
+            'role' => 'required|in:admin,staff,finance',
         ]);
 
         User::create([
@@ -42,7 +42,7 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:users,email,'.$user->id,
-            'role' => 'required|in:admin,staff',
+            'role' => 'required|in:admin,staff,finance',
         ]);
 
         $user->update($request->only('name', 'email', 'role'));

@@ -222,7 +222,7 @@ const deletePart = () => {
                                     <th class="p-4">Tipe</th>
                                     <th class="p-4 text-center">Stok</th>
                                     <th class="p-4 text-right">Harga Jual</th>
-                                    <th v-if="user?.role === 'admin'" class="p-4 text-center">Aksi</th>
+                                    <th v-if="['admin', 'finance'].includes($page.props.auth.user.role)" class="p-4 text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
@@ -255,7 +255,7 @@ const deletePart = () => {
                                         </div>
                                         <span v-else class="font-bold text-blue-700">{{ formatIDR(part.sell_price) }}</span>
                                     </td>
-                                    <td v-if="user?.role === 'admin'" class="p-4 text-center">
+                                    <td v-if="['admin', 'finance'].includes($page.props.auth.user.role)" class="p-4 text-center">
                                         <Button variant="ghost" size="icon" @click="openEditModal(part)" class="text-slate-400 hover:text-blue-600 h-8 w-8">
                                             <Edit2 class="w-4 h-4" />
                                         </Button>
@@ -281,7 +281,7 @@ const deletePart = () => {
             </Card>
         </div>
 
-        <Dialog v-if="user?.role === 'admin'" :open="showEditModal" @update:open="showEditModal = $event">
+        <Dialog v-if="['admin', 'finance'].includes($page.props.auth.user.role)" :open="showEditModal" @update:open="showEditModal = $event">
             <DialogContent class="sm:max-w-[550px]">
                 <DialogHeader><DialogTitle class="flex items-center gap-2 font-bold"><Edit2 class="w-5 h-5 text-blue-600"/> Edit Data Item</DialogTitle></DialogHeader>
                 <form @submit.prevent="submitUpdate" class="space-y-4 py-4">
